@@ -1,0 +1,45 @@
+# 公共配置文件
+# @author sakura
+# @from sakura
+spring:
+  application:
+    name: sakura-ai-code-mother-api
+  # 默认 dev 环境
+  profiles:
+    active: dev
+  # 支持 swagger3
+  mvc:
+    path match:
+      matching-strategy: ant_path_matcher
+    format:
+      date-time: yyyy-MM-dd HH:mm:ss
+  # 数据库配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/sakura_interview?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: root
+
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+server:
+  address: 0.0.0.0
+  port: 8101
+  servlet:
+    context-path: /api
+    # cookie 30 天过期
+    session:
+      cookie:
+        max-age: 2592000
+mybatis-flex:
+  configuration:
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+  global-config:
+    normal-value-of-logic-delete: 0
+    deleted-value-of-logic-delete: 1
+    logic-delete-column: is_delete
+logging:
+  pattern:
+    dateformat: yyyy-MM-dd HH:mm:ss
+
+
