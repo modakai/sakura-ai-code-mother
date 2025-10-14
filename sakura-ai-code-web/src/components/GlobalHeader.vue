@@ -30,42 +30,45 @@
 </template>
 
 <script setup lang="ts">
-import { h, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, ref, watch } from 'vue'
+import { useRoute, useRouter, type RouteRecordRaw } from 'vue-router'
 import type { MenuProps } from 'ant-design-vue'
+import routes from '@/router/routes'
 
 const router = useRouter()
-// 当前选中菜单
-const selectedKeys = ref<string[]>(['/'])
-// 监听路由变化，更新当前选中菜单
-router.afterEach((to, from, next) => {
-  selectedKeys.value = [to.path]
+const route = useRoute()
+
+// 当前选中菜单 keys
+const selectedKeys = ref<string[]>([route.path])
+watch(
+  () => route.path,
+  (p) => {
+    selectedKeys.value = [p]
+  },
+  { immediate: true },
+)
+
+// 根据路由配置自动生成导航菜单（使用强类型 RouteMeta）
+interface MenuItemOption {
+  key: string
+  label: string
+  title: string
+}
+
+const menuItems = computed<MenuItemOption[]>(() => {
+  const items: MenuItemOption[] = (routes as RouteRecordRaw[])
+    .filter((r) => r.meta?.nav)
+    .map((r) => ({
+      key: r.path as string,
+      label: r.meta!.title,
+      title: r.meta!.title,
+    }))
+  return items
 })
 
-// 菜单配置项
-const menuItems = ref([
-  {
-    key: '/',
-    label: '首页',
-    title: '首页',
-  },
-  {
-    key: '/about',
-    label: '关于',
-    title: '关于我们',
-  },
-  {
-    key: 'others',
-    label: h('a', { href: 'https://www.codefather.cn', target: '_blank' }, '编程导航'),
-    title: '编程导航',
-  },
-])
-
-// 处理菜单点击
 const handleMenuClick: MenuProps['onClick'] = (e) => {
-  const key = e.key as string
+  const key = String(e.key)
   selectedKeys.value = [key]
-  // 跳转到对应页面
   if (key.startsWith('/')) {
     router.push(key)
   }
