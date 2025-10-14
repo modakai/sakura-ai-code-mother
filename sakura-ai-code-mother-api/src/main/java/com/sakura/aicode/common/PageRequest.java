@@ -1,6 +1,6 @@
 package com.sakura.aicode.common;
 
-import com.sakura.interview.constant.CommonConstant;
+import com.sakura.aicode.common.constant.CommonConstant;
 import lombok.Data;
 
 /**
