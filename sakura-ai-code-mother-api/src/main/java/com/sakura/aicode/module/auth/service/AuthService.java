@@ -13,6 +13,8 @@ import com.sakura.aicode.module.user.domain.convert.UserConvertMapper;
 import com.sakura.aicode.module.user.domain.entity.User;
 import com.sakura.aicode.module.user.service.UserService;
 import com.sakura.aicode.utils.PasswordUtils;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +28,22 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private final UserService userService;
+
+    public LoginUserVO getLoginInfo(HttpServletRequest request) {
+        // 先判断是否已登录
+        Object userObj = request.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
+        LoginUserVO currentUser = (LoginUserVO) userObj;
+        if (currentUser == null || currentUser.getId() == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+        // 从数据库查询（追求性能的话可以注释，直接返回上述结果）
+//        long userId = currentUser.getId();
+//        currentUser = this.getById(userId);
+//        if (currentUser == null) {
+//            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+//        }
+        return currentUser;
+    }
 
     /**
      * 用户注册
@@ -87,4 +105,13 @@ public class AuthService {
         return UserConvertMapper.INSTANCE.toVo(user);
     }
 
+    public boolean logout(HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        Object userObj = session.getAttribute(UserConstant.USER_LOGIN_STATE);
+        if (userObj == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+        session.removeAttribute(UserConstant.USER_LOGIN_STATE);
+        return true;
+    }
 }
