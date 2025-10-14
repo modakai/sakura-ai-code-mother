@@ -16,7 +16,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: '/admin/userManage',
         name: 'UserManage',
-        component: () => import('@/views/admin/UserManageView.vue'),
+        component: () => import('@/views/admin/user/UserManageView.vue'),
         meta: { title: '用户管理', nav: true },
       }
     ]

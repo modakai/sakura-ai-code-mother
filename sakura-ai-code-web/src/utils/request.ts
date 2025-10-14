@@ -57,7 +57,6 @@ async function requestHandler(
   // if (config.loading) axiosLoading.addLoading()
   return config
 }
-
 function responseHandler(
   response: any,
 ): ApiResponse<any> | AxiosResponse<any> | Promise<any> | any {

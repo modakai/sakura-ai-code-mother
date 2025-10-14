@@ -4,7 +4,7 @@ import { useGet, usePost } from '@/utils/request.ts'
  * 创建用户接口：创建一个新用户
  * @param data - 创建用户请求参数
  */
-export function addApi(data: API.UserCreateRequest) {
+export function addUserApi(data: API.UserCreateRequest) {
   return usePost<API.UserCreateResponse, API.UserCreateRequest>('/user/add', data)
 }
 
@@ -12,7 +12,7 @@ export function addApi(data: API.UserCreateRequest) {
  * 根据 id 获取用户（仅管理员）
  * @param params - 查询参数
  */
-export function getApi(params: API.UserGetRequest) {
+export function getUserApi(params: API.UserGetRequest) {
   const query = new URLSearchParams()
   if (params.id !== undefined) query.set('id', String(params.id))
   return useGet<API.User>(`/user/get?${query.toString()}`)
@@ -22,7 +22,7 @@ export function getApi(params: API.UserGetRequest) {
  * 根据 id 获取用户封装类（UserVO）
  * @param params - 查询参数
  */
-export function getVoApi(params: API.UserVOGetRequest) {
+export function getUserVoApi(params: API.UserVOGetRequest) {
   const query = new URLSearchParams()
   if (params.id !== undefined) query.set('id', String(params.id))
   return useGet<API.UserVO>(`/user/get/vo?${query.toString()}`)
@@ -32,7 +32,7 @@ export function getVoApi(params: API.UserVOGetRequest) {
  * 删除用户
  * @param data - 删除请求参数
  */
-export function deleteApi(data: API.DeleteRequest) {
+export function deleteUserApi(data: API.DeleteRequest) {
   return usePost<boolean, API.DeleteRequest>('/user/delete', data)
 }
 
@@ -40,7 +40,7 @@ export function deleteApi(data: API.DeleteRequest) {
  * 更新用户
  * @param data - 更新请求参数
  */
-export function updateApi(data: API.UserUpdateRequest) {
+export function updateUserApi(data: API.UserUpdateRequest) {
   return usePost<boolean, API.UserUpdateRequest>('/user/update', data)
 }
 
