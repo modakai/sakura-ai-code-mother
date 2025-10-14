@@ -9,6 +9,31 @@ export const routes: RouteRecordRaw[] = [
     meta: { title: '首页', nav: true },
   },
   {
+    path: '/admin',
+    name: 'Admin',
+    meta: {title: "系统管理", nav: true },
+    children: [
+      {
+        path: '/admin/userManage',
+        name: 'UserManage',
+        component: () => import('@/views/admin/UserManageView.vue'),
+        meta: { title: '用户管理', nav: true },
+      }
+    ]
+  },
+  {
+    path: '/login',
+    name: 'Login',
+    component: () => import('@/views/Login.vue'),
+    meta: { title: '登录', nav: false },
+  },
+  {
+    path: '/register',
+    name: 'Register',
+    component: () => import('@/views/Register.vue'),
+    meta: { title: '注册', nav: false },
+  },
+  {
     path: '/about',
     name: 'About',
     component: () => import('@/views/About.vue'),

@@ -56,7 +56,7 @@ public class AuthService {
         String userPassword = registerRequest.getUserPassword();
         String checkPassword = registerRequest.getCheckPassword();
 
-        if (checkPassword.equals(userPassword)) {
+        if (!checkPassword.equals(userPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "两次密码不一致");
         }
 

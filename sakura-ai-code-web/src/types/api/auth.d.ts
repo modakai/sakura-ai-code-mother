@@ -18,7 +18,7 @@ declare namespace API {
     userAvatar: string;
     userProfile: string;
     userRole: string;
-    createTime: string;
-    updateTime: string;
+    createTime?: string;
+    updateTime?: string;
   }
 }
