@@ -1,4 +1,4 @@
-import { usePost } from '@/utils/request.ts'
+import { useGet, usePost } from '@/utils/request.ts'
 
 /**
  * 登录请求
@@ -15,3 +15,19 @@ export function loginApi(data: API.LoginRequest) {
 export function registerApi(data: API.RegisterRequest) {
   return usePost<API.LoginUser, API.LoginRequest>("/auth/register", data)
 }
+
+/**
+ * 获取登录信息请求
+ */
+export function getLoginInfoApi() {
+  return useGet<API.LoginUser>("/auth/get/login")
+}
+
+/**
+ * 退出登录
+ */
+export function logoutApi() {
+  return useGet<API.LoginUser>("/auth/logout")
+}
+
+

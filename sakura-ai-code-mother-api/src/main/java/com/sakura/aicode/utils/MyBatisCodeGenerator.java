@@ -50,7 +50,7 @@ public class MyBatisCodeGenerator {
                 .setLogicDeleteColumn("isDelete");
 
         // 设置生成 entity 并启用 Lombok
-        globalConfig.enableEntity().setWithLombok(true).setJdkVersion(21);
+        globalConfig.enableEntity().setWithLombok(true).setJdkVersion(17);
 
         // 设置生成 mapper
         globalConfig.enableMapper();

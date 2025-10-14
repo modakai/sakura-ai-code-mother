@@ -102,7 +102,7 @@ public class AuthService {
         boolean verifyPassword = PasswordUtils.verifyPassword(userPassword, storePassword);
         ThrowUtils.throwIf(!verifyPassword, ErrorCode.PARAMS_ERROR, "密码错误");
 
-        return UserConvertMapper.INSTANCE.toVo(user);
+        return UserConvertMapper.INSTANCE.toLoginVo(user);
     }
 
     public boolean logout(HttpServletRequest request) {

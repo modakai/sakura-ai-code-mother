@@ -9,7 +9,7 @@ declare namespace API {
     sortOrder?: string
   }
 
-  interface PageResponse<T = any> {
+  interface PageResponse<T = never> {
     records: T
     pageNumber: number
     pageSize: number
