@@ -13,7 +13,7 @@ public class HtmlCodeResult {
     /**
      * HTML代码
      */
-    @Description("HTML代码")
+    @Description("HTML代码存放位置")
     private String htmlCode;
 
     @Description("生成代码的描述")
