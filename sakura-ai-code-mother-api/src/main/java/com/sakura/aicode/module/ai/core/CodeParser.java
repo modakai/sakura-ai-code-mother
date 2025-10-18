@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
  * 解析AI响应回来的代码
  * @author Sakura
  */
+@Deprecated
 public class CodeParser {
 
     // 解析HTML代码 正则表达式

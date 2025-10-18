@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
  * 保存代码文件
  * @author Sakura
  */
+@Deprecated
 public class CodeFileSaver {
 
 
