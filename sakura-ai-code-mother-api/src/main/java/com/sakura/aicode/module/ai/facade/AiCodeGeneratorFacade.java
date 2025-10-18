@@ -5,7 +5,7 @@ import com.sakura.aicode.common.ErrorCode;
 import com.sakura.aicode.common.enums.CodeGenTypeEnum;
 import com.sakura.aicode.exception.BusinessException;
 import com.sakura.aicode.module.ai.core.CodeFileSaver;
-import com.sakura.aicode.module.ai.core.CodeParser;
+import com.sakura.aicode.module.ai.core.CodeParserExecutor;
 import com.sakura.aicode.module.ai.model.HtmlCodeResult;
 import com.sakura.aicode.module.ai.model.MutiFileHtmlCodeResult;
 import com.sakura.aicode.module.ai.service.AiCodeGeneratorService;
@@ -18,7 +18,8 @@ import java.io.File;
 
 /**
  * Ai生成代码门面 门面模块
- *    隐藏内部调用 AI 生成代码 -》并根据不同的模式保存代码的流程
+ * 隐藏内部调用 AI 生成代码 -》并根据不同的模式保存代码的流程
+ *
  * @author Sakura
  */
 @Service
@@ -26,11 +27,12 @@ import java.io.File;
 @Slf4j(topic = "ai.code.generator")
 public class AiCodeGeneratorFacade {
 
-    private final AiCodeGeneratorService  aiCodeGeneratorService;
+    private final AiCodeGeneratorService aiCodeGeneratorService;
 
     /**
      * 统一入口：根据类型生成并保存对应的代码
-     * @param userMessage 用户提示词
+     *
+     * @param userMessage     用户提示词
      * @param codeGenTypeEnum 代码生成的类型
      * @return 返回生成文件的目录
      */
@@ -55,7 +57,8 @@ public class AiCodeGeneratorFacade {
 
     /**
      * 统一入口(流式)：根据类型生成并保存对应的代码
-     * @param userMessage 用户提示词
+     *
+     * @param userMessage     用户提示词
      * @param codeGenTypeEnum 代码生成的类型
      * @return 返回生成文件的目录
      */
@@ -80,6 +83,7 @@ public class AiCodeGeneratorFacade {
 
     /**
      * 保存多个原生文件
+     *
      * @param userMessage prompt
      * @return 保存的目录
      */
@@ -90,6 +94,7 @@ public class AiCodeGeneratorFacade {
 
     /**
      * 保存单HTML文件
+     *
      * @param userMessage prompt
      * @return 保存的目录
      */
@@ -100,6 +105,7 @@ public class AiCodeGeneratorFacade {
 
     /**
      * 保存单HTML文件 (stream流)
+     *
      * @param userMessage prompt
      * @return 保存的目录
      */
@@ -114,7 +120,7 @@ public class AiCodeGeneratorFacade {
                 .doOnComplete(() -> {
                     // 流式返回完成保存代码
                     String codeContent = codeBuilder.toString();
-                    HtmlCodeResult htmlCodeResult = CodeParser.parserHtmlCode(codeContent);
+                    HtmlCodeResult htmlCodeResult = (HtmlCodeResult) CodeParserExecutor.executorCodeParser(CodeGenTypeEnum.HTML, codeContent);
                     File file = CodeFileSaver.saveHtmlCodeResult(htmlCodeResult);
                     log.info("保存成功：路径为：{}", file.getAbsolutePath());
                 });
@@ -122,6 +128,7 @@ public class AiCodeGeneratorFacade {
 
     /**
      * 保存多文件文件 (stream流)
+     *
      * @param userMessage prompt
      * @return 保存的目录
      */
@@ -134,7 +141,8 @@ public class AiCodeGeneratorFacade {
                 .doOnComplete(() -> {
                     // 流式返回完成保存代码
                     String codeContent = codeBuilder.toString();
-                    MutiFileHtmlCodeResult mutiFileHtmlCodeResult = CodeParser.parserMultiFileCode(codeContent);
+                    MutiFileHtmlCodeResult mutiFileHtmlCodeResult =
+                            (MutiFileHtmlCodeResult) CodeParserExecutor.executorCodeParser(CodeGenTypeEnum.MULTI_FILE, codeContent);
                     File file = CodeFileSaver.saveMutieFileCodeResult(mutiFileHtmlCodeResult);
                     log.info("保存成功：路径为：{}", file.getAbsolutePath());
                 });
