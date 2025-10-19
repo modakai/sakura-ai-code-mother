@@ -1,5 +1,6 @@
 package com.sakura.aicode.module.auth.domain.vo;
 
+import com.sakura.aicode.common.constant.UserConstant;
 import lombok.Data;
 
 import java.io.Serial;
@@ -51,4 +52,12 @@ public class LoginUserVO implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
+
+    /**
+     * 判断用户是否为管理员
+     * @return 是：true 反之 false
+     */
+    public boolean isAdmin() {
+        return UserConstant.ADMIN_ROLE.equals(userRole);
+    }
 }

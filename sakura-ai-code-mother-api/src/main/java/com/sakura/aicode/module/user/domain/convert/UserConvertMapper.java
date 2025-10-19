@@ -1,6 +1,8 @@
 package com.sakura.aicode.module.user.domain.convert;
 
 import com.sakura.aicode.module.auth.domain.vo.LoginUserVO;
+import com.sakura.aicode.module.user.domain.dto.UserAddRequest;
+import com.sakura.aicode.module.user.domain.dto.UserUpdateRequest;
 import com.sakura.aicode.module.user.domain.entity.User;
 import com.sakura.aicode.module.user.domain.vo.UserVO;
 import org.mapstruct.Mapper;
@@ -13,6 +15,10 @@ import java.util.List;
 public interface UserConvertMapper {
 
     UserConvertMapper INSTANCE = Mappers.getMapper(UserConvertMapper.class);
+
+    User toEntity(UserAddRequest userAddRequest);
+
+    User toEntity(UserUpdateRequest userUpdateRequest);
 
     LoginUserVO toLoginVo(User user);
 

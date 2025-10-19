@@ -1,6 +1,5 @@
 package com.sakura.aicode.module.user.controller;
 
-import cn.hutool.core.bean.BeanUtil;
 import com.mybatisflex.core.paginate.Page;
 import com.sakura.aicode.common.BaseResponse;
 import com.sakura.aicode.common.DeleteRequest;
@@ -10,6 +9,7 @@ import com.sakura.aicode.common.annotation.AuthCheck;
 import com.sakura.aicode.common.constant.UserConstant;
 import com.sakura.aicode.exception.BusinessException;
 import com.sakura.aicode.exception.ThrowUtils;
+import com.sakura.aicode.module.user.domain.convert.UserConvertMapper;
 import com.sakura.aicode.module.user.domain.dto.UserAddRequest;
 import com.sakura.aicode.module.user.domain.dto.UserQueryRequest;
 import com.sakura.aicode.module.user.domain.dto.UserUpdateRequest;
@@ -41,8 +41,7 @@ public class UserController {
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Long> addUser(@RequestBody UserAddRequest userAddRequest) {
         ThrowUtils.throwIf(userAddRequest == null, ErrorCode.PARAMS_ERROR);
-        User user = new User();
-        BeanUtil.copyProperties(userAddRequest, user);
+        User user = UserConvertMapper.INSTANCE.toEntity(userAddRequest);
         // 默认密码 12345678
         final String DEFAULT_PASSWORD = "12345678";
         String encryptPassword = PasswordUtils.encryptPassword(DEFAULT_PASSWORD);
@@ -106,8 +105,7 @@ public class UserController {
         if (userUpdateRequest == null || userUpdateRequest.getId() == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        User user = new User();
-        BeanUtil.copyProperties(userUpdateRequest, user);
+        User user = UserConvertMapper.INSTANCE.toEntity(userUpdateRequest);
         boolean result = userService.updateById(user);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         return ResultUtils.success(true);
