@@ -20,3 +20,25 @@ CREATE TABLE `user`
   AUTO_INCREMENT = 0
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci COMMENT ='用户';
+
+CREATE TABLE `app`
+(
+    `id`            bigint                                  NOT NULL COMMENT 'id',
+    `app_name`      varchar(256) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '应用名称',
+    `cover`         varchar(512) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '应用封面',
+    `init_prompt`   text COLLATE utf8mb4_unicode_ci         NOT NULL COMMENT '应用初始化提示词',
+    `code_gen_type` varchar(32) COLLATE utf8mb4_unicode_ci  NOT NULL COMMENT '生成应用的类型',
+    `deploy_key`    varchar(64) COLLATE utf8mb4_unicode_ci  NULL COMMENT '部署标识',
+    `deploy_time`   datetime COLLATE utf8mb4_unicode_ci     NULL COMMENT '部署时间',
+    `priority`      int                                     NOT NULL default 0 COMMENT '优先级(99-精选 9999-置顶)',
+    `user_id`       bigint                                  NOT NULL COMMENT '用户id',
+    `create_time`   datetime                                NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time`   datetime                                NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `is_delete`     tinyint                                 NOT NULL DEFAULT '0' COMMENT '是否删除',
+    PRIMARY KEY (`id`),
+    UNIQUE uk_deploy_key(deploy_key),
+    index idx_user_id(user_id)
+) ENGINE = InnoDB
+  AUTO_INCREMENT = 0
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT ='应用';

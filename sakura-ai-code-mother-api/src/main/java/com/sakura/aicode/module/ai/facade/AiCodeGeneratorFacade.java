@@ -43,6 +43,7 @@ public class AiCodeGeneratorFacade {
         if (codeGenTypeEnum == null) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "代码生成类型为空");
         }
+        // todo 这样也应该使用策略模式，去优化不同类型的调用
         return switch (codeGenTypeEnum) {
             // 单HTML
             case HTML -> {
