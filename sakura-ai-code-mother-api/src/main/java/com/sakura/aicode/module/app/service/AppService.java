@@ -5,6 +5,8 @@ import com.mybatisflex.core.service.IService;
 import com.sakura.aicode.module.app.domain.dto.AppQueryRequest;
 import com.sakura.aicode.module.app.domain.entity.App;
 import com.sakura.aicode.module.app.domain.vo.AppVO;
+import com.sakura.aicode.module.auth.domain.vo.LoginUserVO;
+import reactor.core.publisher.Flux;
 
 import java.util.List;
 
@@ -14,6 +16,15 @@ import java.util.List;
  * @author Sakura
  */
 public interface AppService extends IService<App> {
+
+    /**
+     * 生成应用代码
+     * @param appId 应用id
+     * @param message 用户提示词
+     * @param loginUserVO 登录用户
+     * @return Ai生产代码的流式响应
+     */
+    Flux<String> chatToCode(Long appId, String message, LoginUserVO loginUserVO);
 
     QueryWrapper getQueryWrapper(AppQueryRequest queryRequest);
 

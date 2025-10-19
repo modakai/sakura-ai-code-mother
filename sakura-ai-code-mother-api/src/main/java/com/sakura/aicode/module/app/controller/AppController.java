@@ -1,5 +1,6 @@
 package com.sakura.aicode.module.app.controller;
 
+import cn.hutool.core.util.StrUtil;
 import com.mybatisflex.core.paginate.Page;
 import com.sakura.aicode.common.BaseResponse;
 import com.sakura.aicode.common.DeleteRequest;
@@ -19,12 +20,18 @@ import com.sakura.aicode.module.app.domain.vo.AppVO;
 import com.sakura.aicode.module.app.service.AppService;
 import com.sakura.aicode.module.auth.domain.vo.LoginUserVO;
 import com.sakura.aicode.module.auth.service.AuthService;
+import com.sakura.aicode.utils.JsonUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 应用 控制层。
@@ -38,6 +45,37 @@ public class AppController {
     private final AppService appService;
     private final AuthService authService;
 
+    /**
+     * 流式响应：ai生成的对话内容
+     * @param appId 应用id
+     * @param message 用户消息
+     * @param request 请求
+     * @return 流式响应
+     */
+    @GetMapping(value = "/chat/gen/code", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<ServerSentEvent<String>> chatGenCode(@RequestParam Long appId,
+                                                     @RequestParam String message,
+                                                     HttpServletRequest request) {
+        ThrowUtils.throwIf(appId == null || appId <= 0, ErrorCode.PARAMS_ERROR, "appId错误");
+        ThrowUtils.throwIf(StrUtil.isBlank(message), ErrorCode.PARAMS_ERROR, "提示词为空");
+
+        LoginUserVO loginUser = authService.getLoginInfo(request);
+        Flux<String> chatToCode = appService.chatToCode(appId, message, loginUser);
+        return chatToCode
+                .map(chunk -> {
+                    Map<String, String> wrapper = Map.of("d", chunk);
+                    String d = JsonUtils.toJson(wrapper);
+                    return ServerSentEvent.<String>builder()
+                            .data(d)
+                            .build();
+                })
+                .concatWith(Mono.just(
+                        ServerSentEvent.<String>builder()
+                                .event("done")
+                                .data("")
+                                .build())
+                );
+    }
 
     // region 业务代码
 

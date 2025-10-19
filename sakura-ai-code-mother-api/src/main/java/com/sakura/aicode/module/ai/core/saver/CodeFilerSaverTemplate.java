@@ -1,7 +1,6 @@
 package com.sakura.aicode.module.ai.core.saver;
 
 import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.sakura.aicode.common.ErrorCode;
 import com.sakura.aicode.common.enums.CodeGenTypeEnum;
@@ -28,13 +27,14 @@ public abstract sealed class CodeFilerSaverTemplate<T>
      * 模板方法：保存代码的流程
      *
      * @param result ai 响应结果
+     * @param appId 应用id
      * @return 保存代码的文件目录
      */
-    public final File saveCode(T result) {
+    public final File saveCode(T result, Long appId) {
         // 1. 验证参数
         validateInput(result);
         // 2. 生成目标目录
-        String baseDirPath = buildUniqueDir();
+        String baseDirPath = buildUniqueDir(appId);
         // 3. 保存文件
         saveFiles(baseDirPath, result);
         // 4. 返回结果
@@ -53,11 +53,11 @@ public abstract sealed class CodeFilerSaverTemplate<T>
 
 
     /**
-     * 构建唯一目录路径：tmp/code_output/bizType_雪花ID
+     * 构建唯一目录路径：tmp/code_output/bizType_appId
      */
-    private String buildUniqueDir() {
+    private String buildUniqueDir(Long appId) {
         String bizType = getCodeType().getValue();
-        String uniqueDirName = StrUtil.format("{}_{}", bizType, IdUtil.getSnowflakeNextIdStr());
+        String uniqueDirName = StrUtil.format("{}_{}", bizType, appId);
         String dirPath = TARGET_PATH + File.separator + uniqueDirName;
         FileUtil.mkdir(dirPath);
         return dirPath;

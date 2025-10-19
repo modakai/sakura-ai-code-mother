@@ -5,18 +5,23 @@ import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.sakura.aicode.common.ErrorCode;
 import com.sakura.aicode.common.constant.CommonConstant;
+import com.sakura.aicode.common.enums.CodeGenTypeEnum;
 import com.sakura.aicode.exception.BusinessException;
+import com.sakura.aicode.exception.ThrowUtils;
+import com.sakura.aicode.module.ai.facade.AiCodeGeneratorFacade;
 import com.sakura.aicode.module.app.domain.convert.AppConvertMapper;
 import com.sakura.aicode.module.app.domain.dto.AppQueryRequest;
 import com.sakura.aicode.module.app.domain.entity.App;
 import com.sakura.aicode.module.app.domain.vo.AppVO;
 import com.sakura.aicode.module.app.mapper.AppMapper;
 import com.sakura.aicode.module.app.service.AppService;
+import com.sakura.aicode.module.auth.domain.vo.LoginUserVO;
 import com.sakura.aicode.module.user.domain.entity.User;
 import com.sakura.aicode.module.user.domain.vo.UserVO;
 import com.sakura.aicode.module.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 
 import java.util.List;
 import java.util.Map;
@@ -33,6 +38,27 @@ import java.util.stream.Collectors;
 public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppService{
 
     private final UserService userService;
+
+    private final AiCodeGeneratorFacade aiCodeGeneratorFacade;
+
+    @Override
+    public Flux<String> chatToCode(Long appId, String message, LoginUserVO loginUserVO) {
+        ThrowUtils.throwIf(appId == null || appId <= 0, ErrorCode.PARAMS_ERROR, "appId错误");
+
+        // 1 查询应用
+        App app = queryChain()
+                .eq(App::getId, appId)
+                .oneOpt()
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ERROR, "应用不存在"));
+        // 2 校验是否为当前用户
+        ThrowUtils.throwIf(!app.getUserId().equals(loginUserVO.getId()), ErrorCode.NO_AUTH_ERROR, "无权限操作该应用");
+
+        // 3 Ai生成代码并返回
+        String codeGenType = app.getCodeGenType();
+        CodeGenTypeEnum codeGenTypeEnum = CodeGenTypeEnum.getEnumByValue(codeGenType);
+        ThrowUtils.throwIf(codeGenTypeEnum == null, ErrorCode.PARAMS_ERROR, "不支持该代码类型: " + codeGenType);
+        return aiCodeGeneratorFacade.generatorCodeAndSaveWithStream(message, codeGenTypeEnum, appId);
+    }
 
     @Override
     public QueryWrapper getQueryWrapper(AppQueryRequest queryRequest) {
