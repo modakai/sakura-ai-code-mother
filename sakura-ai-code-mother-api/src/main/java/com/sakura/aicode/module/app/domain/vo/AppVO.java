@@ -34,6 +34,11 @@ public class AppVO implements Serializable {
     private String initPrompt;
 
     /**
+     * 部署标识
+     */
+    private String deployKey;
+
+    /**
      * 生成应用的类型
      */
     private String codeGenType;

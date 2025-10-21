@@ -3,6 +3,7 @@ package com.sakura.aicode.module.ai.core.saver;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
 import com.sakura.aicode.common.ErrorCode;
+import com.sakura.aicode.common.constant.AiConstant;
 import com.sakura.aicode.common.enums.CodeGenTypeEnum;
 import com.sakura.aicode.exception.BusinessException;
 
@@ -21,7 +22,7 @@ public abstract sealed class CodeFilerSaverTemplate<T>
      * 第一个占位符表示：业务类型
      * 第一个占位符表示：雪花id
      */
-    private static final String TARGET_PATH = System.getProperty("user.dir") + "/tmp/code_output";
+    private static final String TARGET_PATH = AiConstant.TARGET_PATH;
 
     /**
      * 模板方法：保存代码的流程
