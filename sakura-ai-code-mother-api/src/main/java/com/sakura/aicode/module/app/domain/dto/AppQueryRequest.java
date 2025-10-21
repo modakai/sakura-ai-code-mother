@@ -30,5 +30,10 @@ public class AppQueryRequest extends PageRequest implements Serializable {
      */
     private Integer priority;
 
+    /**
+     * 代码生成类型
+     */
+    private String codeGenType;
+
     private static final long serialVersionUID = 1L;
 }

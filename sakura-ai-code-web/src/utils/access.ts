@@ -18,9 +18,12 @@ router.beforeEach(async (to, from, next) => {
   let loginUser = loginUserStore.loginUser
   // 确保页面刷新，首次加载时，能够等后端返回用户信息后再校验权限
   if (firstFetchLoginUser) {
-    await loginUserStore.fetchLoginUser()
-    loginUser = loginUserStore.loginUser
-    firstFetchLoginUser = false
+    try {
+      await loginUserStore.fetchLoginUser()
+      loginUser = loginUserStore.loginUser
+    } finally {
+      firstFetchLoginUser = false
+    }
   }
 
   if (toUrl.startsWith('/admin')) {

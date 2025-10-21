@@ -59,6 +59,11 @@ public class AppVO implements Serializable {
     private UserVO user;
 
     /**
+     * 部署时间
+     */
+    private LocalDateTime deployTime;
+
+    /**
      * 创建时间
      */
     private LocalDateTime createTime;

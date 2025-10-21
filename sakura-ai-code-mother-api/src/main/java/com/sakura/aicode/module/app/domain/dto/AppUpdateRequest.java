@@ -3,6 +3,7 @@ package com.sakura.aicode.module.app.domain.dto;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 @Data
@@ -24,5 +25,11 @@ public class AppUpdateRequest implements Serializable {
      */
     private String cover;
 
+    /**
+     * 优先级(99-精选 9999-置顶)
+     */
+    private Integer priority;
+
+    @Serial
     private static final long serialVersionUID = 1L;
 }

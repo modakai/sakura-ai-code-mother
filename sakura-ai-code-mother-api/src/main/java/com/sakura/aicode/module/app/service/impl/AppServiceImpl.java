@@ -125,12 +125,14 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
         String appName = queryRequest.getAppName();
         Long userId = queryRequest.getUserId();
         Integer priority = queryRequest.getPriority();
+        String codeGenType = queryRequest.getCodeGenType();
         String sortField = queryRequest.getSortField();
         String sortOrder = queryRequest.getSortOrder();
         return QueryWrapper.create()
                 .eq(App::getId, id)
                 .eq(App::getUserId, userId)
                 .eq(App::getPriority, priority)
+                .eq(App::getCodeGenType, codeGenType)
                 .like(App::getAppName, appName)
                 .orderBy(sortField, CommonConstant.SORT_ORDER_ASC.equals(sortOrder));
     }

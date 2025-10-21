@@ -9,6 +9,18 @@ export const routes: RouteRecordRaw[] = [
     meta: { title: '首页', nav: true },
   },
   {
+    path: '/app/chat/:id',
+    name: 'AppChat',
+    component: () => import('@/views/app/AppChatPage.vue'),
+    meta: { title: '应用对话', nav: false },
+  },
+  {
+    path: '/app/edit/:id',
+    name: 'AppEdit',
+    component: () => import('@/views/app/AppEditPage.vue'),
+    meta: { title: '编辑应用', nav: false },
+  },
+  {
     path: '/admin',
     name: 'Admin',
     meta: {title: "系统管理", nav: true },
@@ -18,6 +30,12 @@ export const routes: RouteRecordRaw[] = [
         name: 'UserManage',
         component: () => import('@/views/admin/user/UserManageView.vue'),
         meta: { title: '用户管理', nav: true },
+      },
+      {
+        path: '/admin/appManage',
+        name: 'AppManage',
+        component: () => import('@/views/admin/app/AppManageView.vue'),
+        meta: { title: '应用管理', nav: true },
       }
     ]
   },

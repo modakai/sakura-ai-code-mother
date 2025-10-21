@@ -46,11 +46,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { type RouteRecordRaw, useRoute, useRouter } from 'vue-router'
 import { type MenuProps, message } from 'ant-design-vue'
 import routes from '@/router/routes'
-import { getLoginInfoApi, logoutApi } from '@/api/authApi'
+import { logoutApi } from '@/api/authApi'
 
 import { LogoutOutlined } from '@ant-design/icons-vue'
 import { useLoginUserStore } from '@/stores/loginUser.ts'
