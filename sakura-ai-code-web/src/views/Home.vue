@@ -224,7 +224,7 @@ onMounted(() => {
       </div>
 
       <!-- 我的作品 -->
-      <div class="section">
+      <div class="section" v-if="loginUserStore.loginUser.id">
         <h2 class="section-title">我的作品</h2>
         <div class="app-grid">
           <AppCard

@@ -27,7 +27,7 @@ export function getLoginInfoApi() {
  * 退出登录
  */
 export function logoutApi() {
-  return useGet<API.LoginUser>("/auth/logout")
+  return usePost<API.LoginUser>("/auth/logout")
 }
 
 
