@@ -41,7 +41,7 @@ public class StaticResourceController {
             resourcePath = "/index.html";
         }
         // 构建文件目录
-        String filePath = AiConstant.TARGET_PATH + "/" + deployKey + resourcePath;
+        String filePath = AiConstant.CODE_OUTPUT_ROOT_DIR + "/" + deployKey + resourcePath;
         File file = new File(filePath);
         // 检查文件是否存在
         if (!file.exists()) {

@@ -22,7 +22,7 @@ public abstract sealed class CodeFilerSaverTemplate<T>
      * 第一个占位符表示：业务类型
      * 第一个占位符表示：雪花id
      */
-    private static final String TARGET_PATH = AiConstant.TARGET_PATH;
+    private static final String TARGET_PATH = AiConstant.CODE_OUTPUT_ROOT_DIR;
 
     /**
      * 模板方法：保存代码的流程

@@ -6,9 +6,13 @@ package com.sakura.aicode.common.constant;
 public interface AiConstant {
 
     /**
-     * 存放目录
-     * 第一个占位符表示：业务类型
-     * 第一个占位符表示：雪花id
+     * 应用生成目录
      */
-     static final String TARGET_PATH = System.getProperty("user.dir") + "/tmp/code_output";
+    String CODE_OUTPUT_ROOT_DIR = System.getProperty("user.dir") + "/tmp/code_output";
+
+    /**
+     * 应用部署域名
+     */
+    String CODE_DEPLOY_HOST = "http://localhost";
+
 }

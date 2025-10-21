@@ -13,6 +13,7 @@ import com.sakura.aicode.exception.BusinessException;
 import com.sakura.aicode.exception.ThrowUtils;
 import com.sakura.aicode.module.app.domain.convert.AppConvertMapper;
 import com.sakura.aicode.module.app.domain.dto.AppAddRequest;
+import com.sakura.aicode.module.app.domain.dto.AppDeployRequest;
 import com.sakura.aicode.module.app.domain.dto.AppQueryRequest;
 import com.sakura.aicode.module.app.domain.dto.AppUpdateRequest;
 import com.sakura.aicode.module.app.domain.entity.App;
@@ -44,6 +45,21 @@ public class AppController {
 
     private final AppService appService;
     private final AuthService authService;
+
+    /**
+     * 部署应用
+     * @return 返回部署成功的应用访问路径
+     */
+    @PostMapping("/deploy")
+    public BaseResponse<String> deployApp(@RequestBody AppDeployRequest appDeployRequest,
+                                          HttpServletRequest request) {
+        Long appId = appDeployRequest.getAppId();
+        if (appId == null || appId <= 0) {
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR, "请设置应用id");
+        }
+        LoginUserVO loginInfo = authService.getLoginInfo(request);
+        return ResultUtils.success(appService.deployApp(appId, loginInfo));
+    }
 
     /**
      * 流式响应：ai生成的对话内容

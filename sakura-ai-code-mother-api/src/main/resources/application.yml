@@ -42,4 +42,8 @@ logging:
   pattern:
     dateformat: yyyy-MM-dd HH:mm:ss
 
+# app 应用部署目录
+app:
+  deployPath: D:/ProgramData/docker/nginx/app/ai_code
+
 
