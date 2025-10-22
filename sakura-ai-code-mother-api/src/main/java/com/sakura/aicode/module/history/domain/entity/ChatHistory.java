@@ -44,7 +44,7 @@ public class ChatHistory implements Serializable {
     private String chatMessage;
 
     /**
-     * 消息类型(u-用户，a-AI消息)
+     * 消息类型(U-用户，A-AI消息)
      */
     private String messageType;
 

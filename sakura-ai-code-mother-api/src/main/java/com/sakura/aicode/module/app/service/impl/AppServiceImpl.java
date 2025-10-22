@@ -21,17 +21,22 @@ import com.sakura.aicode.module.app.domain.vo.AppVO;
 import com.sakura.aicode.module.app.mapper.AppMapper;
 import com.sakura.aicode.module.app.service.AppService;
 import com.sakura.aicode.module.auth.domain.vo.LoginUserVO;
+import com.sakura.aicode.module.history.domain.entity.ChatHistory;
+import com.sakura.aicode.module.history.service.ChatHistoryService;
 import com.sakura.aicode.module.user.domain.entity.User;
 import com.sakura.aicode.module.user.domain.vo.UserVO;
 import com.sakura.aicode.module.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
 import java.io.File;
+import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,11 +49,12 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppService {
 
     private final UserService userService;
-
     private final AiCodeGeneratorFacade aiCodeGeneratorFacade;
+    private final ChatHistoryService chatHistoryService;
 
     @Setter
     @Value("${app.deployPath}")
@@ -56,19 +62,19 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
 
     @Override
     public String deployApp(Long appId, LoginUserVO loginUserVO) {
-//      1. 参数校验：app是否存在，用户是否有权限部署（仅本人）
+        //      1. 参数校验：app是否存在，用户是否有权限部署（仅本人）
         App app = getById(appId);
         if (app == null || !app.getUserId().equals(loginUserVO.getId())) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权限部署此应用");
         }
 
-//      2. 生成deployKey：生成逻辑：6位大小写字母 + 数字，只能生成一次，并且不能修改
+        //      2. 生成deployKey：生成逻辑：6位大小写字母 + 数字，只能生成一次，并且不能修改
         String deployKey = app.getDeployKey();
         if (StrUtil.isBlank(deployKey)) {
             deployKey = RandomUtil.randomString(6);
         }
 
-//      3. 部署操作：将 code_output 目录下的文件拷贝到 code_deploy 目录，已 deployKey为命名
+        //      3. 部署操作：将 code_output 目录下的文件拷贝到 code_deploy 目录，已 deployKey为命名
 
         // 根据app的代码类型构建目录路径
         String codeGenType = app.getCodeGenType();
@@ -106,14 +112,24 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
                 .eq(App::getId, appId)
                 .oneOpt()
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ERROR, "应用不存在"));
-        // 2 校验是否为当前用户
-        ThrowUtils.throwIf(!app.getUserId().equals(loginUserVO.getId()), ErrorCode.NO_AUTH_ERROR, "无权限操作该应用");
 
         // 3 Ai生成代码并返回
         String codeGenType = app.getCodeGenType();
         CodeGenTypeEnum codeGenTypeEnum = CodeGenTypeEnum.getEnumByValue(codeGenType);
         ThrowUtils.throwIf(codeGenTypeEnum == null, ErrorCode.PARAMS_ERROR, "不支持该代码类型: " + codeGenType);
-        return aiCodeGeneratorFacade.generatorCodeAndSaveWithStream(message, codeGenTypeEnum, appId);
+
+        // 2 保存用户消息
+        chatHistoryService.saveUserMessage(appId, message, loginUserVO.getId());
+
+        // 4. 保存AI回复
+        StringBuilder builder = new StringBuilder();
+        return aiCodeGeneratorFacade.generatorCodeAndSaveWithStream(message, codeGenTypeEnum, appId)
+                .map(chunk -> {
+                    builder.append(chunk);
+                    return chunk;
+                })
+                .doOnComplete(() -> chatHistoryService.saveAiMessage(appId, builder.toString(), loginUserVO.getId()))
+                .doOnError(e -> chatHistoryService.saveAiMessage(appId, "AI回复错误：" + e.getMessage(), loginUserVO.getId()));
     }
 
     @Override
@@ -167,5 +183,42 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
             appVO.setUser(userVOMap.get(appVO.getUserId()));
         }
         return voList;
+    }
+
+    /**
+     * 删除应用时关联删除对话历史
+     *
+     * @param id 应用ID
+     * @return 是否成功
+     */
+    @Override
+    public boolean removeById(Serializable id) {
+        if (id == null) {
+            return false;
+        }
+        // 转换为 Long 类型
+        long appId = Long.parseLong(id.toString());
+        if (appId <= 0) {
+            return false;
+        }
+        // 先删除关联的对话历史
+        try {
+            chatHistoryService.removeByAppId(appId);
+        } catch (Exception e) {
+            // 记录日志但不阻止应用删除
+            log.error("删除应用关联对话历史失败: {}", e.getMessage());
+        }
+        // 删除应用
+        return super.removeById(id);
+    }
+
+
+    @Override
+    public boolean removeByIds(Collection<? extends Serializable> ids) {
+        boolean removed = super.removeByIds(ids);
+        if (removed) {
+            chatHistoryService.remove(QueryWrapper.create().in(ChatHistory::getAppId, ids));
+        }
+        return removed;
     }
 }

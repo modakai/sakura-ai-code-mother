@@ -43,4 +43,14 @@ public class ThrowUtils {
     public static void throwIf(boolean condition, ErrorCode errorCode, String message) {
         throwIf(condition, new BusinessException(errorCode, message));
     }
+
+    /**
+     * 校验id
+     * @param id id
+     * @param errorCode
+     * @param message
+     */
+    public static void throwIfId(Number id, ErrorCode errorCode, String message) {
+        throwIf(id == null || id.longValue() <= 0, new BusinessException(errorCode, message));
+    }
 }
