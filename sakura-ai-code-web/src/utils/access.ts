@@ -10,7 +10,7 @@ let firstFetchLoginUser = true
  */
 router.beforeEach(async (to, from, next) => {
   const toUrl = to.fullPath
-  if (toUrl.startsWith('/login') || toUrl.startsWith('/register')) {
+  if (toUrl === '/' || toUrl.startsWith('/login') || toUrl.startsWith('/register')) {
     next()
     return
   }

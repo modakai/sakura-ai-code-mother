@@ -249,6 +249,7 @@ const loadChatHistory = async (isLoadMore = false) => {
           await nextTick()
           scrollToBottom()
         }
+
         // 更新游标
         lastCreateTime.value = chatHistories[chatHistories.length - 1]?.createTime
         // 检查是否还有更多历史
