@@ -112,7 +112,7 @@ public class AppController {
         App app = AppConvertMapper.INSTANCE.toEntity(addRequest);
         app.setUserId(loginUser.getId());
 
-        // 暂时
+        // todo 调用AI，让Ai根据用户给的提示词生成对应的AppName和描述
         app.setAppName(initPrompt.substring(0, Math.min(initPrompt.length(), 12)));
         app.setCodeGenType(CodeGenTypeEnum.MULTI_FILE.getValue());
         app.setCover("https://www.mianshiya.com/logo.png");
