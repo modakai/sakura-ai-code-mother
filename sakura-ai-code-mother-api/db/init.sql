@@ -1,5 +1,3 @@
-
-
 CREATE TABLE `user`
 (
     `id`            bigint                                  NOT NULL AUTO_INCREMENT COMMENT 'id',
@@ -21,6 +19,7 @@ CREATE TABLE `user`
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci COMMENT ='用户';
 
+-- 应用表
 CREATE TABLE `app`
 (
     `id`            bigint                                  NOT NULL COMMENT 'id',
@@ -36,9 +35,29 @@ CREATE TABLE `app`
     `update_time`   datetime                                NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `is_delete`     tinyint                                 NOT NULL DEFAULT '0' COMMENT '是否删除',
     PRIMARY KEY (`id`),
-    UNIQUE uk_deploy_key(deploy_key),
-    index idx_user_id(user_id)
+    UNIQUE uk_deploy_key (deploy_key),
+    index idx_user_id (user_id)
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 0
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci COMMENT ='应用';
+
+-- 对话历史
+CREATE TABLE `chat_history`
+(
+    `id`           bigint   NOT NULL auto_increment COMMENT 'id',
+    `app_id`       bigint   NOT NULL COMMENT '应用id',
+    `chat_message` text     NOT NULL COMMENT '对话消息',
+    `message_type` char(2)  NOT NULL COMMENT '消息类型(u-用户，a-AI消息)',
+    `user_id`      bigint   NOT NULL COMMENT '用户id',
+    `create_time`  datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time`  datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `is_delete`    tinyint  NOT NULL DEFAULT '0' COMMENT '是否删除',
+    PRIMARY KEY (`id`),
+    index idx_appid (app_id),
+    index idx_create_time (create_time),
+    index idx_app_id_create_time (app_id, create_time)
+) ENGINE = InnoDB
+  AUTO_INCREMENT = 0
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT ='对话历史';
