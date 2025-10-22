@@ -245,6 +245,9 @@ const loadChatHistory = async (isLoadMore = false) => {
         } else {
           // 初始加载，直接设置消息列表
           messages.value = historyMessages
+          // 初始加载完成后，滚动到底部
+          await nextTick()
+          scrollToBottom()
         }
         // 更新游标
         lastCreateTime.value = chatHistories[chatHistories.length - 1]?.createTime
