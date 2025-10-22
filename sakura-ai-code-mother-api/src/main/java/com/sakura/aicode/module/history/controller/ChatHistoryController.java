@@ -17,11 +17,9 @@ import com.sakura.aicode.module.history.domain.vo.ChatHistoryVO;
 import com.sakura.aicode.module.history.service.ChatHistoryService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -37,6 +35,28 @@ public class ChatHistoryController {
     private final ChatHistoryService chatHistoryService;
     private final AuthService authService;
     private final AppService appService;
+
+    /**
+     * 游标获取分页应用聊天记录
+     * @param appId 应用id
+     * @param pageSize 页码
+     * @param lastCreateTime 游标时间
+     * @param request 请求
+     * @return {@link ChatHistory}
+     */
+    @GetMapping("/app/cursor/{appId}")
+    public BaseResponse<Page<ChatHistory>> cursorAppChatHistory(@PathVariable Long appId,
+                                                                @RequestParam(name = "pageSize", defaultValue = "20") long pageSize,
+                                                                @RequestParam(name = "lastCreateTime", required = false) LocalDateTime lastCreateTime,
+                                                                HttpServletRequest request) {
+        ThrowUtils.throwIfId(appId, ErrorCode.PARAMS_ERROR, "应用id为空");
+        App app = appService.getById(appId);
+        ThrowUtils.throwIf(app == null, ErrorCode.NOT_FOUND_ERROR, "应用不存在");
+
+        LoginUserVO user = authService.getLoginInfo(request);
+        ThrowUtils.throwIf(!app.getUserId().equals(user.getId()) && !user.isAdmin(), ErrorCode.NO_AUTH_ERROR, "无权限查看此应用的消息");
+        return ResultUtils.success(chatHistoryService.listAppChatHistoryPage(app, pageSize, lastCreateTime, user.getId()));
+    }
 
 
     /**

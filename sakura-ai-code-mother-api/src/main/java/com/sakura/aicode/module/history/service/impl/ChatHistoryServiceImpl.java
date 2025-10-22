@@ -2,12 +2,14 @@ package com.sakura.aicode.module.history.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.sakura.aicode.common.ErrorCode;
 import com.sakura.aicode.common.constant.CommonConstant;
 import com.sakura.aicode.exception.BusinessException;
 import com.sakura.aicode.exception.ThrowUtils;
+import com.sakura.aicode.module.app.domain.entity.App;
 import com.sakura.aicode.module.history.common.enums.MessageTypeEnum;
 import com.sakura.aicode.module.history.domain.convert.ChatHistoryConvertMapper;
 import com.sakura.aicode.module.history.domain.dto.ChatHistoryQueryRequest;
@@ -21,6 +23,7 @@ import com.sakura.aicode.module.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,16 +41,44 @@ public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatH
     private final UserService userService;
 
     @Override
+    public Page<ChatHistory> listAppChatHistoryPage(App app, long pageSize, LocalDateTime lastCreateTime, Long useId) {
+
+        ThrowUtils.throwIf(pageSize <= 0 || pageSize > 50, ErrorCode.PARAMS_ERROR, "页码大小必须在10~50之间");
+
+        // 构建查询参数
+        ChatHistoryQueryRequest queryRequest = new ChatHistoryQueryRequest();
+        queryRequest.setAppId(app.getId());
+        queryRequest.setUserId(useId);
+        queryRequest.setLastCreateTime(lastCreateTime);
+
+        // 查询
+        return page(Page.of(1, pageSize), getQueryWrapper(queryRequest));
+    }
+
+    @Override
     public QueryWrapper getQueryWrapper(ChatHistoryQueryRequest queryRequest) {
         if (queryRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "请求参数为空");
         }
         Long appId = queryRequest.getAppId();
         Long userId = queryRequest.getUserId();
+        String messageType = queryRequest.getMessageType();
+        LocalDateTime lastCreateTime = queryRequest.getLastCreateTime();
         String sortField = queryRequest.getSortField();
         String sortOrder = queryRequest.getSortOrder();
 
-        return QueryWrapper.create().eq(ChatHistory::getAppId, appId).eq(ChatHistory::getUserId, userId).orderBy(sortField, CommonConstant.SORT_ORDER_ASC.equals(sortOrder));
+        if (StrUtil.isBlank(sortField)) {
+            // 默认按时间排序
+            sortField = "create_time";
+            sortOrder = CommonConstant.SORT_ORDER_DESC;
+        }
+
+        return QueryWrapper.create()
+                .eq(ChatHistory::getAppId, appId)
+                .eq(ChatHistory::getUserId, userId)
+                .eq(ChatHistory::getMessageType, messageType)
+                .lt(ChatHistory::getCreateTime, lastCreateTime)
+                .orderBy(sortField, CommonConstant.SORT_ORDER_ASC.equals(sortOrder));
     }
 
     @Override
