@@ -156,7 +156,12 @@ import DeploySuccessModal from '@/components/DeploySuccessModal.vue'
 import aiAvatar from '@/assets/aiAvatar.png'
 import { API_BASE_URL, getStaticPreviewUrl } from '@/config/env'
 
-import { CloudUploadOutlined, ExportOutlined, InfoCircleOutlined, SendOutlined } from '@ant-design/icons-vue'
+import {
+  CloudUploadOutlined,
+  ExportOutlined,
+  InfoCircleOutlined,
+  SendOutlined,
+} from '@ant-design/icons-vue'
 import { deleteAppApi, deployAppApi, getAppVoApi } from '@/api/appApi.ts'
 import request from '@/utils/request.ts'
 import { cursorAppChatHistoryPage } from '@/api/chatHistoryApi.ts'

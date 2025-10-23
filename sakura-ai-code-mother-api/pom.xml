@@ -31,6 +31,13 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-community-bom</artifactId>
+                <version>1.7.1-beta14</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -62,6 +69,10 @@
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-reactor</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-community-redis-spring-boot-starter</artifactId>
         </dependency>
 
         <dependency>

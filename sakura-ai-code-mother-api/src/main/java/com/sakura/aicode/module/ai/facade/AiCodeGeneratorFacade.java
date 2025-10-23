@@ -34,7 +34,7 @@ public class AiCodeGeneratorFacade {
      *
      * @param userMessage     用户提示词
      * @param codeGenTypeEnum 代码生成的类型
-     * @param appId 应用id
+     * @param appId           应用id
      * @return 返回生成文件的目录
      */
     public File generatorCodeAndSave(String userMessage, CodeGenTypeEnum codeGenTypeEnum, Long appId) {
@@ -44,16 +44,15 @@ public class AiCodeGeneratorFacade {
         if (codeGenTypeEnum == null) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "代码生成类型为空");
         }
-        // todo 这样也应该使用策略模式，去优化不同类型的调用
         return switch (codeGenTypeEnum) {
             // 单HTML
             case HTML -> {
-                HtmlCodeResult result = aiCodeGeneratorService.generateHtmlCode(userMessage);
+                HtmlCodeResult result = aiCodeGeneratorService.generateHtmlCode(1, userMessage);
                 yield CodeFileSaverExecutor.executeSaver(result, codeGenTypeEnum, appId);
             }
             // 原生 HTML css js
             case MULTI_FILE -> {
-                MutiFileHtmlCodeResult result = aiCodeGeneratorService.generateMultiFileHtmlCode(userMessage);
+                MutiFileHtmlCodeResult result = aiCodeGeneratorService.generateMultiFileHtmlCode(appId, userMessage);
                 yield CodeFileSaverExecutor.executeSaver(result, codeGenTypeEnum, appId);
             }
             default -> {
@@ -68,7 +67,7 @@ public class AiCodeGeneratorFacade {
      *
      * @param userMessage     用户提示词
      * @param codeGenTypeEnum 代码生成的类型
-     * @param appId 应用id
+     * @param appId           应用id
      * @return 返回生成文件的目录
      */
     public Flux<String> generatorCodeAndSaveWithStream(String userMessage, CodeGenTypeEnum codeGenTypeEnum, Long appId) {
@@ -81,12 +80,12 @@ public class AiCodeGeneratorFacade {
         return switch (codeGenTypeEnum) {
             // 单HTML
             case HTML -> {
-                Flux<String> result = aiCodeGeneratorService.generateHtmlCodeStream(userMessage);
+                Flux<String> result = aiCodeGeneratorService.generateHtmlCodeStream(appId, userMessage);
                 yield processCodeStream(result, codeGenTypeEnum, appId);
             }
             // 原生 HTML css js
             case MULTI_FILE -> {
-                Flux<String> result = aiCodeGeneratorService.generateMultiFileCodeStream(userMessage);
+                Flux<String> result = aiCodeGeneratorService.generateMultiFileCodeStream(appId, userMessage);
                 yield processCodeStream(result, codeGenTypeEnum, appId);
             }
             default -> {
@@ -99,17 +98,15 @@ public class AiCodeGeneratorFacade {
     private Flux<String> processCodeStream(Flux<String> result, CodeGenTypeEnum codeGenType, Long appId) {
         StringBuilder codeBuilder = new StringBuilder();
         // 实时收集代码片段
-        return result.
-                doOnNext(codeBuilder::append)
-                .doOnComplete(() -> {
-                    // 流式返回完成保存代码
-                    String codeContent = codeBuilder.toString();
-                    // 解析执行器解析code
-                    Object codeParser = CodeParserExecutor.executorCodeParser(codeGenType, codeContent);
-                    // 保存执行器 保存code
-                    File file = CodeFileSaverExecutor.executeSaver(codeParser, codeGenType, appId);
-                    log.info("保存成功：路径为：{}", file.getAbsolutePath());
-                });
+        return result.doOnNext(codeBuilder::append).doOnComplete(() -> {
+            // 流式返回完成保存代码
+            String codeContent = codeBuilder.toString();
+            // 解析执行器解析code
+            Object codeParser = CodeParserExecutor.executorCodeParser(codeGenType, codeContent);
+            // 保存执行器 保存code
+            File file = CodeFileSaverExecutor.executeSaver(codeParser, codeGenType, appId);
+            log.info("保存成功：路径为：{}", file.getAbsolutePath());
+        });
     }
 
 }

@@ -2,7 +2,9 @@ package com.sakura.aicode.module.ai.service;
 
 import com.sakura.aicode.module.ai.model.HtmlCodeResult;
 import com.sakura.aicode.module.ai.model.MutiFileHtmlCodeResult;
+import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
+import dev.langchain4j.service.UserMessage;
 import reactor.core.publisher.Flux;
 
 /**
@@ -16,7 +18,7 @@ public interface AiCodeGeneratorService {
      * @return 生成的代码结果
      */
     @SystemMessage(fromResource = "prompt/codegen-html-system-prompt.txt")
-    HtmlCodeResult generateHtmlCode(String userMessage);
+    HtmlCodeResult generateHtmlCode(@MemoryId int memoryId, @UserMessage String userMessage);
 
     /**
      * 生成多文件HTML代码
@@ -24,25 +26,27 @@ public interface AiCodeGeneratorService {
      * @return 生成的代码结果
      */
     @SystemMessage(fromResource = "prompt/codegen-multi-file-system-prompt.txt")
-    MutiFileHtmlCodeResult generateMultiFileHtmlCode(String userMessage);
+    MutiFileHtmlCodeResult generateMultiFileHtmlCode(@MemoryId long memoryId, @UserMessage String userMessage);
 
 
     /**
      * 生成 HTML 代码（流式）
      *
      * @param userMessage 用户消息
+     * @param memoryId 记忆id
      * @return 生成的代码结果
      */
     @SystemMessage(fromResource = "prompt/codegen-html-system-prompt.txt")
-    Flux<String> generateHtmlCodeStream(String userMessage);
+    Flux<String> generateHtmlCodeStream(@MemoryId long memoryId, @UserMessage String userMessage);
 
     /**
      * 生成多文件代码（流式）
      *
      * @param userMessage 用户消息
+     * @param memoryId 记忆id
      * @return 生成的代码结果
      */
     @SystemMessage(fromResource = "prompt/codegen-multi-file-system-prompt.txt")
-    Flux<String> generateMultiFileCodeStream(String userMessage);
+    Flux<String> generateMultiFileCodeStream(@MemoryId long memoryId, @UserMessage String userMessage);
 
 }

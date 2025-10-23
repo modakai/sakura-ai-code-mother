@@ -1,6 +1,8 @@
 package com.sakura.aicode.module.ai;
 
 import com.sakura.aicode.module.ai.service.AiCodeGeneratorService;
+import dev.langchain4j.community.store.memory.chat.redis.RedisChatMemoryStore;
+import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.service.AiServices;
@@ -19,12 +21,19 @@ public class AiCodeGeneratorFactory {
     private ChatModel chatModel;
     @Resource
     private StreamingChatModel streamingChatModel;
+    @Resource
+    private RedisChatMemoryStore redisChatMemoryStore;
 
     @Bean
     public AiCodeGeneratorService aiCodeGeneratorService() {
         return AiServices.builder(AiCodeGeneratorService.class)
                 .chatModel(chatModel)
                 .streamingChatModel(streamingChatModel)
+                .chatMemoryProvider(memoryId -> MessageWindowChatMemory.builder()
+                        .id(memoryId)
+                        .chatMemoryStore(redisChatMemoryStore)
+                        .maxMessages(20)
+                        .build())
                 .build();
     }
 }
