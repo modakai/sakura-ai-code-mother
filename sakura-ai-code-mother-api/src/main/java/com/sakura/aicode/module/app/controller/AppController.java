@@ -172,6 +172,7 @@ public class AppController {
         boolean b = appService.removeById(deleteRequest.getId());
         return ResultUtils.success(b);
     }
+
     /**
      * 根据 id 获取应用详情
      *

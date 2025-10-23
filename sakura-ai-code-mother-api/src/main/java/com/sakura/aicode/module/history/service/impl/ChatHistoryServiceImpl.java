@@ -20,14 +20,22 @@ import com.sakura.aicode.module.history.service.ChatHistoryService;
 import com.sakura.aicode.module.user.domain.entity.User;
 import com.sakura.aicode.module.user.domain.vo.UserVO;
 import com.sakura.aicode.module.user.service.UserService;
+import dev.langchain4j.community.store.memory.chat.redis.RedisChatMemoryStore;
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.UserMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.sakura.aicode.module.history.domain.entity.table.ChatHistoryTableDef.CHAT_HISTORY;
 
 /**
  * 对话历史 服务层实现。
@@ -36,9 +44,45 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatHistory> implements ChatHistoryService {
 
     private final UserService userService;
+
+    private final RedisChatMemoryStore redisChatMemoryStore;
+
+    @Override
+    public void loadChatMemoryMessage(long appId, long userId, int maxCount) {
+        QueryWrapper queryWrapper = QueryWrapper.create()
+                .select(CHAT_HISTORY.CHAT_MESSAGE, CHAT_HISTORY.MESSAGE_TYPE)
+                .from(ChatHistory.class)
+                .eq(ChatHistory::getAppId, appId)
+                .eq(ChatHistory::getUserId, userId)
+                .orderBy(ChatHistory::getCreateTime, false)
+                .limit(1, maxCount);
+        List<ChatHistory> historyList = list(queryWrapper);
+        // 说明没有消息
+        if (CollUtil.isEmpty(historyList)) {
+            return;
+        }
+        // 翻转列表
+        historyList = CollUtil.reverse(historyList);
+        // 先清除消息
+        redisChatMemoryStore.deleteMessages(appId);
+        List<ChatMessage> chatMessages = new ArrayList<>(21);
+        // todo 根据不同的应用加载 resources中的系统提示词
+        for (ChatHistory chatHistory : historyList) {
+            String messageType = chatHistory.getMessageType();
+            if (MessageTypeEnum.USER.getValue().equals(messageType)) {
+                // 用户消息
+                chatMessages.add(UserMessage.from(chatHistory.getChatMessage()));
+            } else if (MessageTypeEnum.AI.getValue().equals(messageType)){
+                chatMessages.add(AiMessage.from(chatHistory.getChatMessage()));
+            }
+        }
+        redisChatMemoryStore.updateMessages(appId, chatMessages);
+        log.info("加载 应用appId：{} 成功，共加载 {} 条消息", appId, historyList.size());
+    }
 
     @Override
     public Page<ChatHistory> listAppChatHistoryPage(App app, long pageSize, LocalDateTime lastCreateTime, Long useId) {

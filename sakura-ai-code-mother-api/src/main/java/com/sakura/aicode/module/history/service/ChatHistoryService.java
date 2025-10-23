@@ -18,6 +18,12 @@ import java.util.List;
  */
 public interface ChatHistoryService extends IService<ChatHistory> {
 
+    /**
+     * 加载对应应用的 消息
+     * @param appId 应用id
+     * @param userId 用户id
+     */
+    void loadChatMemoryMessage(long appId, long userId, int maxCount);
 
     /**
      * 游标分页

@@ -1,4 +1,4 @@
-import { useGet } from '@/utils/request.ts'
+import { useGet, usePost } from '@/utils/request.ts'
 
 const PREFIX = '/history'
 
@@ -8,4 +8,8 @@ const PREFIX = '/history'
  */
 export function cursorAppChatHistoryPage(params: API.CursorChatHistoryRequest) {
   return useGet<API.PageResponse<API.ChatHistory[]>>(PREFIX + '/app/cursor/' + params.appId, params)
+}
+
+export function loadAppChatHistoryApi(params: { id: number }) {
+  return usePost(PREFIX + '/load/chat/' + params.id)
 }

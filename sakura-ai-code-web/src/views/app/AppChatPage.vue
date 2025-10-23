@@ -156,15 +156,10 @@ import DeploySuccessModal from '@/components/DeploySuccessModal.vue'
 import aiAvatar from '@/assets/aiAvatar.png'
 import { API_BASE_URL, getStaticPreviewUrl } from '@/config/env'
 
-import {
-  CloudUploadOutlined,
-  ExportOutlined,
-  InfoCircleOutlined,
-  SendOutlined,
-} from '@ant-design/icons-vue'
+import { CloudUploadOutlined, ExportOutlined, InfoCircleOutlined, SendOutlined } from '@ant-design/icons-vue'
 import { deleteAppApi, deployAppApi, getAppVoApi } from '@/api/appApi.ts'
 import request from '@/utils/request.ts'
-import { cursorAppChatHistoryPage } from '@/api/chatHistoryApi.ts'
+import { cursorAppChatHistoryPage, loadAppChatHistoryApi } from '@/api/chatHistoryApi.ts'
 
 const route = useRoute()
 const router = useRouter()
@@ -292,7 +287,8 @@ const fetchAppInfo = async () => {
     const res = await getAppVoApi(id as unknown as number)
     if (res.code === 0 && res.data) {
       appInfo.value = res.data
-
+      //将对话历史加载到Redis中
+      loadAppChatHistoryApi({ id })
       // 先加载对话历史
       await loadChatHistory()
       // 如果有至少2条对话记录，展示对应的网站

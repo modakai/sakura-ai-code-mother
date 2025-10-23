@@ -17,10 +17,12 @@ import com.sakura.aicode.module.history.domain.vo.ChatHistoryVO;
 import com.sakura.aicode.module.history.service.ChatHistoryService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * 对话历史 控制层。
@@ -30,11 +32,37 @@ import java.util.List;
 @RestController
 @RequestMapping("/history")
 @RequiredArgsConstructor
+@Slf4j
 public class ChatHistoryController {
 
     private final ChatHistoryService chatHistoryService;
     private final AuthService authService;
     private final AppService appService;
+
+    /**
+     * 加载对话记忆
+     * @param appId 应用id
+     * @param request 请求
+     * @return true or false
+     */
+    @PostMapping("/load/chat/{appId}")
+    public BaseResponse<Boolean> loadChat(@PathVariable long appId,
+                                          HttpServletRequest request) {
+        ThrowUtils.throwIfId(appId, ErrorCode.PARAMS_ERROR, "应用id为空");
+        LoginUserVO loginInfo = authService.getLoginInfo(request);
+        // 可以异步加载，即便记忆回复不成功，也可以继续进行对话
+        CompletableFuture.runAsync(() -> {
+            try {
+                // 执行加载逻辑（即使失败也不影响主流程）
+                chatHistoryService.loadChatMemoryMessage(appId, loginInfo.getId(), 20);
+                log.info("异步加载成功：用户[{}]，应用[{}]", loginInfo.getId(), appId);
+            } catch (Exception e) {
+                // 捕获异步任务中的异常（避免静默失败，方便排查）
+                log.error("异步加载失败：用户[{}]，应用[{}]", loginInfo.getId(), appId, e);
+            }
+        });
+        return ResultUtils.success(true);
+    }
 
     /**
      * 游标获取分页应用聊天记录
