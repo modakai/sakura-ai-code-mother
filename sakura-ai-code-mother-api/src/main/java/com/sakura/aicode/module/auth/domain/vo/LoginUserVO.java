@@ -57,7 +57,7 @@ public class LoginUserVO implements Serializable {
      * 判断用户是否为管理员
      * @return 是：true 反之 false
      */
-    public boolean isAdmin() {
+    public boolean checkAdmin() {
         return UserConstant.ADMIN_ROLE.equals(userRole);
     }
 }

@@ -82,7 +82,7 @@ public class ChatHistoryController {
         ThrowUtils.throwIf(app == null, ErrorCode.NOT_FOUND_ERROR, "应用不存在");
 
         LoginUserVO user = authService.getLoginInfo(request);
-        ThrowUtils.throwIf(!app.getUserId().equals(user.getId()) && !user.isAdmin(), ErrorCode.NO_AUTH_ERROR, "无权限查看此应用的消息");
+        ThrowUtils.throwIf(!app.getUserId().equals(user.getId()) && !user.checkAdmin(), ErrorCode.NO_AUTH_ERROR, "无权限查看此应用的消息");
         return ResultUtils.success(chatHistoryService.listAppChatHistoryPage(app, pageSize, lastCreateTime, user.getId()));
     }
 
@@ -102,7 +102,7 @@ public class ChatHistoryController {
         // 仅应用创建者和管理员可见
         LoginUserVO loginUser = authService.getLoginInfo(request);
         App app = appService.getById(appId);
-        ThrowUtils.throwIf(!app.getUserId().equals(loginUser.getId()) && !loginUser.isAdmin(), ErrorCode.NO_AUTH_ERROR);
+        ThrowUtils.throwIf(!app.getUserId().equals(loginUser.getId()) && !loginUser.checkAdmin(), ErrorCode.NO_AUTH_ERROR);
 
         long pageNum = queryRequest.getCurrent();
         long pageSize = queryRequest.getPageSize();

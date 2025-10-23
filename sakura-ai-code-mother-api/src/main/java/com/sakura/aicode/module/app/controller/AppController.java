@@ -167,7 +167,7 @@ public class AppController {
         ThrowUtils.throwIf(app == null, ErrorCode.NOT_FOUND_ERROR);
         // 判断是否是自己或管理员
         ThrowUtils.throwIf(!app.getUserId().equals(loginUser.getId())
-                && !loginUser.isAdmin(), ErrorCode.NO_AUTH_ERROR);
+                && !loginUser.checkAdmin(), ErrorCode.NO_AUTH_ERROR);
 
         boolean b = appService.removeById(deleteRequest.getId());
         return ResultUtils.success(b);
