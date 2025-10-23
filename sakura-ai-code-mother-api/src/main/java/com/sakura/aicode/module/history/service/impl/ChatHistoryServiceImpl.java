@@ -59,7 +59,7 @@ public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatH
                 .eq(ChatHistory::getAppId, appId)
                 .eq(ChatHistory::getUserId, userId)
                 .orderBy(ChatHistory::getCreateTime, false)
-                .limit(1, maxCount);
+                .limit(0, maxCount);
         List<ChatHistory> historyList = list(queryWrapper);
         // 说明没有消息
         if (CollUtil.isEmpty(historyList)) {
@@ -70,7 +70,6 @@ public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatH
         // 先清除消息
         redisChatMemoryStore.deleteMessages(appId);
         List<ChatMessage> chatMessages = new ArrayList<>(21);
-        // todo 根据不同的应用加载 resources中的系统提示词
         for (ChatHistory chatHistory : historyList) {
             String messageType = chatHistory.getMessageType();
             if (MessageTypeEnum.USER.getValue().equals(messageType)) {

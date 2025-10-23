@@ -121,14 +121,11 @@ public class ChatHistoryController {
      */
     @PostMapping("/list/page/vo/admin")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Page<ChatHistoryVO>> listAllChatHistoryByPage(@RequestBody ChatHistoryQueryRequest queryRequest) {
+    public BaseResponse<Page<ChatHistory>> listAllChatHistoryByPage(@RequestBody ChatHistoryQueryRequest queryRequest) {
         ThrowUtils.throwIf(queryRequest == null, ErrorCode.PARAMS_ERROR);
         long pageNum = queryRequest.getCurrent();
         long pageSize = queryRequest.getPageSize();
         Page<ChatHistory> page = chatHistoryService.page(Page.of(pageNum, pageSize), chatHistoryService.getQueryWrapper(queryRequest));
-        Page<ChatHistoryVO> voPage = new Page<>(pageNum, pageSize, page.getTotalRow());
-        List<ChatHistoryVO> voList = chatHistoryService.getVoList(page.getRecords());
-        voPage.setRecords(voList);
-        return ResultUtils.success(voPage);
+        return ResultUtils.success(page);
     }
 }

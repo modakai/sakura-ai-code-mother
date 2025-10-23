@@ -36,6 +36,12 @@ export const routes: RouteRecordRaw[] = [
         name: 'AppManage',
         component: () => import('@/views/admin/app/AppManageView.vue'),
         meta: { title: '应用管理', nav: true },
+      },
+      {
+        path: '/admin/chatManage',
+        name: 'ChatManage',
+        component: () => import('@/views/admin/history/ChatHistoryManageView.vue'),
+        meta: { title: '对话管理', nav: true },
       }
     ]
   },

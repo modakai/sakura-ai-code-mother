@@ -10,6 +10,10 @@ export function cursorAppChatHistoryPage(params: API.CursorChatHistoryRequest) {
   return useGet<API.PageResponse<API.ChatHistory[]>>(PREFIX + '/app/cursor/' + params.appId, params)
 }
 
+export function pageChatHistoryVoByAdminApi(data: API.ChatHistoryQueryRequest) {
+  return usePost<API.PageResponse<API.ChatHistory[]>>(PREFIX + '/list/page/vo/admin', data)
+}
+
 export function loadAppChatHistoryApi(params: { id: number }) {
   return usePost(PREFIX + '/load/chat/' + params.id)
 }
