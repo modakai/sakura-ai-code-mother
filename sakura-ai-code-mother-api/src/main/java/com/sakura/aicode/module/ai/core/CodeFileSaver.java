@@ -5,8 +5,8 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.sakura.aicode.common.enums.CodeGenTypeEnum;
-import com.sakura.aicode.module.ai.model.HtmlCodeResult;
-import com.sakura.aicode.module.ai.model.MutiFileHtmlCodeResult;
+import com.sakura.aicode.module.ai.core.model.HtmlCodeResult;
+import com.sakura.aicode.module.ai.core.model.MutiFileHtmlCodeResult;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;

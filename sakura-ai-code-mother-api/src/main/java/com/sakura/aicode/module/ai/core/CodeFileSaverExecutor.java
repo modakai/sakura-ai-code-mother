@@ -3,10 +3,10 @@ package com.sakura.aicode.module.ai.core;
 import com.sakura.aicode.common.ErrorCode;
 import com.sakura.aicode.common.enums.CodeGenTypeEnum;
 import com.sakura.aicode.exception.BusinessException;
+import com.sakura.aicode.module.ai.core.model.HtmlCodeResult;
+import com.sakura.aicode.module.ai.core.model.MutiFileHtmlCodeResult;
 import com.sakura.aicode.module.ai.core.saver.HtmlCodeFilerSaverTemplate;
 import com.sakura.aicode.module.ai.core.saver.MutieFileSaverTemplate;
-import com.sakura.aicode.module.ai.model.HtmlCodeResult;
-import com.sakura.aicode.module.ai.model.MutiFileHtmlCodeResult;
 
 import java.io.File;
 

@@ -1,6 +1,6 @@
 package com.sakura.aicode.module.ai.core.parser;
 
-import com.sakura.aicode.module.ai.model.HtmlCodeResult;
+import com.sakura.aicode.module.ai.core.model.HtmlCodeResult;
 
 /**
  * HTML代码解析器具体实现

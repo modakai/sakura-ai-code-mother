@@ -1,7 +1,7 @@
 package com.sakura.aicode.module.ai.core.saver;
 
 import com.sakura.aicode.common.enums.CodeGenTypeEnum;
-import com.sakura.aicode.module.ai.model.HtmlCodeResult;
+import com.sakura.aicode.module.ai.core.model.HtmlCodeResult;
 
 /**
  * HTML保存

@@ -114,7 +114,7 @@ public class AppController {
 
         // todo 调用AI，让Ai根据用户给的提示词生成对应的AppName和描述
         app.setAppName(initPrompt.substring(0, Math.min(initPrompt.length(), 12)));
-        app.setCodeGenType(CodeGenTypeEnum.MULTI_FILE.getValue());
+        app.setCodeGenType(CodeGenTypeEnum.VUE_PROJECT.getValue());
         app.setCover("https://www.mianshiya.com/logo.png");
 
         boolean result = appService.save(app);

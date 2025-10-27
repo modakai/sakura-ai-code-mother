@@ -13,6 +13,7 @@ import com.sakura.aicode.common.constant.CommonConstant;
 import com.sakura.aicode.common.enums.CodeGenTypeEnum;
 import com.sakura.aicode.exception.BusinessException;
 import com.sakura.aicode.exception.ThrowUtils;
+import com.sakura.aicode.module.ai.core.StreamHandlerExecutor;
 import com.sakura.aicode.module.ai.facade.AiCodeGeneratorFacade;
 import com.sakura.aicode.module.app.domain.convert.AppConvertMapper;
 import com.sakura.aicode.module.app.domain.dto.AppQueryRequest;
@@ -122,14 +123,8 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
         chatHistoryService.saveUserMessage(appId, message, loginUserVO.getId());
 
         // 4. 保存AI回复
-        StringBuilder builder = new StringBuilder();
-        return aiCodeGeneratorFacade.generatorCodeAndSaveWithStream(message, codeGenTypeEnum, appId)
-                .map(chunk -> {
-                    builder.append(chunk);
-                    return chunk;
-                })
-                .doOnComplete(() -> chatHistoryService.saveAiMessage(appId, builder.toString(), loginUserVO.getId()))
-                .doOnError(e -> chatHistoryService.saveAiMessage(appId, "AI回复错误：" + e.getMessage(), loginUserVO.getId()));
+        Flux<String> flux = aiCodeGeneratorFacade.generatorCodeAndSaveWithStream(message, codeGenTypeEnum, appId);
+        return StreamHandlerExecutor.execStream(flux, codeGenTypeEnum, chatHistoryService, appId, loginUserVO);
     }
 
     @Override

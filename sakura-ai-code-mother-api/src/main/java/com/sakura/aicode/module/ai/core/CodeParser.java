@@ -1,7 +1,7 @@
 package com.sakura.aicode.module.ai.core;
 
-import com.sakura.aicode.module.ai.model.HtmlCodeResult;
-import com.sakura.aicode.module.ai.model.MutiFileHtmlCodeResult;
+import com.sakura.aicode.module.ai.core.model.HtmlCodeResult;
+import com.sakura.aicode.module.ai.core.model.MutiFileHtmlCodeResult;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

@@ -1,6 +1,6 @@
 package com.sakura.aicode.module.ai.core.parser;
 
-import com.sakura.aicode.module.ai.model.MutiFileHtmlCodeResult;
+import com.sakura.aicode.module.ai.core.model.MutiFileHtmlCodeResult;
 
 /**
  * 多文件原生解析

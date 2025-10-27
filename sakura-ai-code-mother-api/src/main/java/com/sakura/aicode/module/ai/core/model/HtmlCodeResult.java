@@ -1,4 +1,4 @@
-package com.sakura.aicode.module.ai.model;
+package com.sakura.aicode.module.ai.core.model;
 
 import dev.langchain4j.model.output.structured.Description;
 import lombok.Data;

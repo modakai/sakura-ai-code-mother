@@ -6,9 +6,17 @@ import com.sakura.aicode.common.enums.CodeGenTypeEnum;
 import com.sakura.aicode.exception.BusinessException;
 import com.sakura.aicode.module.ai.core.CodeFileSaverExecutor;
 import com.sakura.aicode.module.ai.core.CodeParserExecutor;
-import com.sakura.aicode.module.ai.model.HtmlCodeResult;
-import com.sakura.aicode.module.ai.model.MutiFileHtmlCodeResult;
+import com.sakura.aicode.module.ai.core.model.HtmlCodeResult;
+import com.sakura.aicode.module.ai.core.model.MutiFileHtmlCodeResult;
+import com.sakura.aicode.module.ai.core.model.message.AiResponseMessage;
+import com.sakura.aicode.module.ai.core.model.message.ToolExecutedMessage;
+import com.sakura.aicode.module.ai.core.model.message.ToolRequestMessage;
 import com.sakura.aicode.module.ai.service.AiCodeGeneratorService;
+import com.sakura.aicode.utils.JsonUtils;
+import dev.langchain4j.agent.tool.ToolExecutionRequest;
+import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.service.TokenStream;
+import dev.langchain4j.service.tool.ToolExecution;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -79,8 +87,8 @@ public class AiCodeGeneratorFacade {
         }
         return switch (codeGenTypeEnum) {
             case VUE_PROJECT -> {
-                Flux<String> flux = aiCodeGeneratorService.generateVueStream(appId, userMessage);
-                yield processCodeStream(flux, codeGenTypeEnum, appId);
+                TokenStream tokenStream = aiCodeGeneratorService.generateVueStream(appId, userMessage);
+                yield processTokenStream(tokenStream);
             }
             // 单HTML
             case HTML -> {
@@ -112,5 +120,39 @@ public class AiCodeGeneratorFacade {
             log.info("保存成功：路径为：{}", file.getAbsolutePath());
         });
     }
+
+    /**
+     * 将 TokenStream 转换为 Flux<String>，并传递工具调用信息
+     *
+     * @param tokenStream TokenStream 对象
+     * @return Flux<String> 流式响应
+     */
+    private Flux<String> processTokenStream(TokenStream tokenStream) {
+        return Flux.create(sink -> {
+            tokenStream.onPartialResponse((String partialResponse) -> {
+                        AiResponseMessage aiResponseMessage = new AiResponseMessage(partialResponse);
+                        sink.next(JsonUtils.toJson(aiResponseMessage));
+                    })
+                    // 调用工具之前的执行
+                    .beforeToolExecution((beforeToolExecution) -> {
+                        ToolExecutionRequest request = beforeToolExecution.request();
+                        ToolRequestMessage toolRequestMessage = new ToolRequestMessage(request);
+                        sink.next(JsonUtils.toJson(toolRequestMessage));
+                    })
+                    .onToolExecuted((ToolExecution toolExecution) -> {
+                        ToolExecutedMessage toolExecutedMessage = new ToolExecutedMessage(toolExecution);
+                        sink.next(JsonUtils.toJson(toolExecutedMessage));
+                    })
+                    .onCompleteResponse((ChatResponse response) -> {
+                        sink.complete();
+                    })
+                    .onError((Throwable error) -> {
+                        error.printStackTrace();
+                        sink.error(error);
+                    })
+                    .start();
+        });
+    }
+
 
 }

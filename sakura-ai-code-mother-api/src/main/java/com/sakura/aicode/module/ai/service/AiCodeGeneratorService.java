@@ -1,9 +1,10 @@
 package com.sakura.aicode.module.ai.service;
 
-import com.sakura.aicode.module.ai.model.HtmlCodeResult;
-import com.sakura.aicode.module.ai.model.MutiFileHtmlCodeResult;
+import com.sakura.aicode.module.ai.core.model.HtmlCodeResult;
+import com.sakura.aicode.module.ai.core.model.MutiFileHtmlCodeResult;
 import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
+import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.service.UserMessage;
 import reactor.core.publisher.Flux;
 
@@ -36,7 +37,7 @@ public interface AiCodeGeneratorService {
      * @return 生成的代码结果
      */
     @SystemMessage(fromResource = "prompt/codegen-vue-system-prompt.txt")
-    Flux<String> generateVueStream(@MemoryId long memoryId, @UserMessage String userMessage);
+    TokenStream generateVueStream(@MemoryId long memoryId, @UserMessage String userMessage);
 
     /**
      * 生成 HTML 代码（流式）
