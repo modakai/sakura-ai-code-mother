@@ -30,6 +30,7 @@ public class CodeFileSaverExecutor {
         return switch (codeGenType) {
             case HTML -> htmlCodeFilerSaverTemplate.saveCode((HtmlCodeResult) codeResult, appId);
             case MULTI_FILE -> mutieFileSaverTemplate.saveCode((MutiFileHtmlCodeResult) codeResult, appId);
+            case VUE_PROJECT -> new File("src/main/resources/prompt");
             default -> throw new BusinessException(ErrorCode.OPERATION_ERROR, "不支持生成类型" + codeGenType.getValue());
         };
     }

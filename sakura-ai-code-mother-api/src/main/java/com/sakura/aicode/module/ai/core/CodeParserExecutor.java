@@ -25,6 +25,7 @@ public final class CodeParserExecutor {
         return switch (codeGenType) {
             case HTML -> htmlCodeParser.parseCode(code);
             case MULTI_FILE -> multiFileCodeParser.parseCode(code);
+            case VUE_PROJECT -> new Object();
             default -> throw new BusinessException(ErrorCode.OPERATION_ERROR, "不支持的生成类型：" + codeGenType.getValue());
         };
     }

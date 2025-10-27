@@ -28,6 +28,15 @@ public interface AiCodeGeneratorService {
     @SystemMessage(fromResource = "prompt/codegen-multi-file-system-prompt.txt")
     MutiFileHtmlCodeResult generateMultiFileHtmlCode(@MemoryId long memoryId, @UserMessage String userMessage);
 
+    /**
+     * 生成Vue文件的代码
+     *
+     * @param userMessage 用户消息
+     * @param memoryId 记忆id
+     * @return 生成的代码结果
+     */
+    @SystemMessage(fromResource = "prompt/codegen-vue-system-prompt.txt")
+    Flux<String> generateVueStream(@MemoryId long memoryId, @UserMessage String userMessage);
 
     /**
      * 生成 HTML 代码（流式）

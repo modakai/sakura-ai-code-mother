@@ -1,7 +1,9 @@
 package com.sakura.aicode.module.ai;
 
 import com.sakura.aicode.module.ai.service.AiCodeGeneratorService;
+import com.sakura.aicode.module.ai.tools.FileWriteTool;
 import dev.langchain4j.community.store.memory.chat.redis.RedisChatMemoryStore;
+import dev.langchain4j.data.message.ToolExecutionResultMessage;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
@@ -20,7 +22,7 @@ public class AiCodeGeneratorFactory {
     @Resource
     private ChatModel chatModel;
     @Resource
-    private StreamingChatModel streamingChatModel;
+    private StreamingChatModel openAiStreamingChatModel;
     @Resource
     private RedisChatMemoryStore redisChatMemoryStore;
 
@@ -28,11 +30,15 @@ public class AiCodeGeneratorFactory {
     public AiCodeGeneratorService aiCodeGeneratorService() {
         return AiServices.builder(AiCodeGeneratorService.class)
                 .chatModel(chatModel)
-                .streamingChatModel(streamingChatModel)
+                .streamingChatModel(openAiStreamingChatModel)
+                .tools(new FileWriteTool())
+                .hallucinatedToolNameStrategy(toolExecutionRequest -> ToolExecutionResultMessage.from(
+                        toolExecutionRequest, "Error: there is not tool called" + toolExecutionRequest.name()
+                ))
                 .chatMemoryProvider(memoryId -> MessageWindowChatMemory.builder()
                         .id(memoryId)
                         .chatMemoryStore(redisChatMemoryStore)
-                        .maxMessages(20)
+                        .maxMessages(9999)
                         .build())
                 .build();
     }

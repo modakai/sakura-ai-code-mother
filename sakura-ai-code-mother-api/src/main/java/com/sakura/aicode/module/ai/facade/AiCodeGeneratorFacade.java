@@ -78,6 +78,10 @@ public class AiCodeGeneratorFacade {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "代码生成类型为空");
         }
         return switch (codeGenTypeEnum) {
+            case VUE_PROJECT -> {
+                Flux<String> flux = aiCodeGeneratorService.generateVueStream(appId, userMessage);
+                yield processCodeStream(flux, codeGenTypeEnum, appId);
+            }
             // 单HTML
             case HTML -> {
                 Flux<String> result = aiCodeGeneratorService.generateHtmlCodeStream(appId, userMessage);
