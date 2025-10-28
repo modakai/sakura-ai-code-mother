@@ -14,6 +14,7 @@ import com.sakura.aicode.common.enums.CodeGenTypeEnum;
 import com.sakura.aicode.exception.BusinessException;
 import com.sakura.aicode.exception.ThrowUtils;
 import com.sakura.aicode.module.ai.core.StreamHandlerExecutor;
+import com.sakura.aicode.module.ai.core.builder.VueProjectBuilder;
 import com.sakura.aicode.module.ai.facade.AiCodeGeneratorFacade;
 import com.sakura.aicode.module.app.domain.convert.AppConvertMapper;
 import com.sakura.aicode.module.app.domain.dto.AppQueryRequest;
@@ -82,14 +83,27 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
         String sourceDirName = codeGenType + "_" + appId;
         String sourceDirPath = AiConstant.CODE_OUTPUT_ROOT_DIR + File.separator + sourceDirName;
         // 检查源目录是否存在
-        if (!FileUtil.exist(sourceDirPath) || !FileUtil.isDirectory(sourceDirPath)) {
+        File sourceDir = new File(sourceDirPath);
+        if (!sourceDir.exists() || !sourceDir.isDirectory()) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "目录没有代码，请先生成代码");
         }
 
+        // vue项目特殊处理
+        if (CodeGenTypeEnum.VUE_PROJECT.getValue().equals(codeGenType)) {
+
+            // 检查是否存在 dist 目录
+            File distFile = new File(sourceDirPath, "dist");
+            if (!distFile.exists()) {
+                // 重新构建
+                boolean success = VueProjectBuilder.build(sourceDirPath);
+                ThrowUtils.throwIf(!success, ErrorCode.SYSTEM_ERROR, "Vue项目构建失败");
+            }
+            sourceDir = distFile;
+        }
         // 复制文件到部署目录
         String deployDirPath = deployPath + File.separator + deployKey;
         try {
-            FileUtil.copyContent(new File(sourceDirPath), new File(deployDirPath), true);
+            FileUtil.copyContent(sourceDir, new File(deployDirPath), true);
         } catch (IORuntimeException e) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "部署失败");
         }

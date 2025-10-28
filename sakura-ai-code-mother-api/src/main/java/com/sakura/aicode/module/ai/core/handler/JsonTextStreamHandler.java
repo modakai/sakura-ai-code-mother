@@ -2,6 +2,8 @@ package com.sakura.aicode.module.ai.core.handler;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
+import com.sakura.aicode.common.constant.AiConstant;
+import com.sakura.aicode.module.ai.core.builder.VueProjectBuilder;
 import com.sakura.aicode.module.ai.core.model.message.*;
 import com.sakura.aicode.module.auth.domain.vo.LoginUserVO;
 import com.sakura.aicode.module.history.service.ChatHistoryService;
@@ -9,6 +11,7 @@ import com.sakura.aicode.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 
+import java.io.File;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -43,7 +46,12 @@ public class JsonTextStreamHandler {
                     return handleJsonMessageChunk(chunk, chatHistoryStringBuilder, seenToolIds);
                 })
                 .filter(StrUtil::isNotEmpty) // 过滤空字串
-                .doOnComplete(() -> chatHistoryService.saveAiMessage(appId, chatHistoryStringBuilder.toString(), loginUser.getId()))
+                .doOnComplete(() -> {
+                    chatHistoryService.saveAiMessage(appId, chatHistoryStringBuilder.toString(), loginUser.getId());
+                    // 构建项目
+                    String projectPath = AiConstant.CODE_OUTPUT_ROOT_DIR + File.separator + AiConstant.VUE_PROJECT_PATH + appId;
+                    VueProjectBuilder.buildAsync(projectPath);
+                })
                 .doOnError(e -> chatHistoryService.saveAiMessage(appId, "AI回复错误：" + e.getMessage(), loginUser.getId()));
     }
 

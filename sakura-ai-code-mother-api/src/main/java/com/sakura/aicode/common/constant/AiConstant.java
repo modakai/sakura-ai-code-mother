@@ -15,4 +15,7 @@ public interface AiConstant {
      */
     String CODE_DEPLOY_HOST = "http://localhost";
 
+
+    String VUE_PROJECT_PATH = "vue_project_";
+
 }
