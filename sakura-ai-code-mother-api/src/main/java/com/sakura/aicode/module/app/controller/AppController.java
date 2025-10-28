@@ -58,7 +58,9 @@ public class AppController {
             return ResultUtils.error(ErrorCode.PARAMS_ERROR, "请设置应用id");
         }
         LoginUserVO loginInfo = authService.getLoginInfo(request);
-        return ResultUtils.success(appService.deployApp(appId, loginInfo));
+        String url = appService.deployApp(appId, loginInfo);
+        appService.genCover(url, appId);
+        return ResultUtils.success(url);
     }
 
     /**

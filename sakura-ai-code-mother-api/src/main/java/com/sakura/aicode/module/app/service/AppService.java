@@ -39,4 +39,10 @@ public interface AppService extends IService<App> {
     AppVO getVo(App app);
 
     List<AppVO> getVoList(List<App> appList);
+
+    /**
+     * 异步生成应用封面
+     * @param url 可访问的URL
+     */
+    void genCover(String url, Long appId);
 }

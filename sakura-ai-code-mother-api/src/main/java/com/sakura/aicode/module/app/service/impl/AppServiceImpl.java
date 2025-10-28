@@ -25,6 +25,7 @@ import com.sakura.aicode.module.app.service.AppService;
 import com.sakura.aicode.module.auth.domain.vo.LoginUserVO;
 import com.sakura.aicode.module.history.domain.entity.ChatHistory;
 import com.sakura.aicode.module.history.service.ChatHistoryService;
+import com.sakura.aicode.module.other.service.ScreenshotService;
 import com.sakura.aicode.module.user.domain.entity.User;
 import com.sakura.aicode.module.user.domain.vo.UserVO;
 import com.sakura.aicode.module.user.service.UserService;
@@ -42,6 +43,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
@@ -57,6 +59,7 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
     private final UserService userService;
     private final AiCodeGeneratorFacade aiCodeGeneratorFacade;
     private final ChatHistoryService chatHistoryService;
+    private final ScreenshotService screenshotService;
 
     @Setter
     @Value("${app.deployPath}")
@@ -108,11 +111,7 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "部署失败");
         }
         // 更新app的部署信息
-        boolean updated = updateChain()
-                .set(App::getDeployKey, deployKey)
-                .set(App::getDeployTime, LocalDateTime.now())
-                .eq(App::getId, app.getId())
-                .update();
+        boolean updated = updateChain().set(App::getDeployKey, deployKey).set(App::getDeployTime, LocalDateTime.now()).eq(App::getId, app.getId()).update();
         ThrowUtils.throwIf(!updated, ErrorCode.OPERATION_ERROR, "部署失败");
         // 返回URL
         return String.format("%s/%s", AiConstant.CODE_DEPLOY_HOST, deployKey);
@@ -123,10 +122,7 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
         ThrowUtils.throwIf(appId == null || appId <= 0, ErrorCode.PARAMS_ERROR, "appId错误");
 
         // 1 查询应用
-        App app = queryChain()
-                .eq(App::getId, appId)
-                .oneOpt()
-                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ERROR, "应用不存在"));
+        App app = queryChain().eq(App::getId, appId).oneOpt().orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ERROR, "应用不存在"));
 
         // 3 Ai生成代码并返回
         String codeGenType = app.getCodeGenType();
@@ -153,13 +149,7 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
         String codeGenType = queryRequest.getCodeGenType();
         String sortField = queryRequest.getSortField();
         String sortOrder = queryRequest.getSortOrder();
-        return QueryWrapper.create()
-                .eq(App::getId, id)
-                .eq(App::getUserId, userId)
-                .eq(App::getPriority, priority)
-                .eq(App::getCodeGenType, codeGenType)
-                .like(App::getAppName, appName)
-                .orderBy(sortField, CommonConstant.SORT_ORDER_ASC.equals(sortOrder));
+        return QueryWrapper.create().eq(App::getId, id).eq(App::getUserId, userId).eq(App::getPriority, priority).eq(App::getCodeGenType, codeGenType).like(App::getAppName, appName).orderBy(sortField, CommonConstant.SORT_ORDER_ASC.equals(sortOrder));
     }
 
     @Override
@@ -183,8 +173,7 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
         Set<Long> appUserIds = appList.stream().map(App::getUserId).collect(Collectors.toSet());
         List<User> users = userService.listByIds(appUserIds);
         if (CollUtil.isEmpty(users)) return CollUtil.empty(List.class);
-        Map<Long, UserVO> userVOMap = users.stream()
-                .collect(Collectors.toMap(User::getId, userService::getUserVo));
+        Map<Long, UserVO> userVOMap = users.stream().collect(Collectors.toMap(User::getId, userService::getUserVo));
 
         List<AppVO> voList = AppConvertMapper.INSTANCE.toVoList(appList);
         // 填充信息
@@ -192,6 +181,20 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
             appVO.setUser(userVOMap.get(appVO.getUserId()));
         }
         return voList;
+    }
+
+    @Override
+    public void genCover(String url, Long appId) {
+        CompletableFuture.runAsync(() -> {
+            // 异步
+            String coverUrl = screenshotService.screenshotAndUpload(url);
+            // 更新app
+            updateChain()
+                    .from(App.class)
+                    .set(App::getCover, coverUrl)
+                    .eq(App::getId, appId)
+                    .update();
+        });
     }
 
     /**
