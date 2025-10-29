@@ -3,6 +3,14 @@ import { useGet, usePost } from '@/utils/request.ts'
 const PREFIX = '/app'
 
 /**
+ * 下载代码
+ * @param data   - 下载代码请求参数
+ */
+export function downloadAppCodeApi(data: { appId: number }) {
+  return usePost<void, { appId: number }>(PREFIX + '/download/' + data.appId)
+}
+
+/**
  * 部署应用
  * @param data
  */

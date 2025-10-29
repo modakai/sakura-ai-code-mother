@@ -7,6 +7,7 @@ import com.sakura.aicode.common.DeleteRequest;
 import com.sakura.aicode.common.ErrorCode;
 import com.sakura.aicode.common.ResultUtils;
 import com.sakura.aicode.common.annotation.AuthCheck;
+import com.sakura.aicode.common.constant.AiConstant;
 import com.sakura.aicode.common.constant.UserConstant;
 import com.sakura.aicode.common.enums.CodeGenTypeEnum;
 import com.sakura.aicode.exception.BusinessException;
@@ -21,8 +22,10 @@ import com.sakura.aicode.module.app.domain.vo.AppVO;
 import com.sakura.aicode.module.app.service.AppService;
 import com.sakura.aicode.module.auth.domain.vo.LoginUserVO;
 import com.sakura.aicode.module.auth.service.AuthService;
+import com.sakura.aicode.module.other.service.CodeDownLoadService;
 import com.sakura.aicode.utils.JsonUtils;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
@@ -31,6 +34,7 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -45,6 +49,35 @@ public class AppController {
 
     private final AppService appService;
     private final AuthService authService;
+    private final CodeDownLoadService codeDownLoadService;
+
+    /**
+     * 下载应用代码
+     * @param appId 应用id
+     * @param request 请求
+     * @param response 响应
+     */
+    @PostMapping("/download/{appId}")
+    public void download(@PathVariable Long appId,
+                         HttpServletRequest request,
+                         HttpServletResponse response) {
+        ThrowUtils.throwIfId(appId, ErrorCode.PARAMS_ERROR, "应用id错误");
+        App app = appService.getById(appId);
+        ThrowUtils.throwIf(app == null, ErrorCode.NOT_FOUND_ERROR, "应用不存在");
+
+        LoginUserVO loginInfo = authService.getLoginInfo(request);
+        ThrowUtils.throwIf(!app.getUserId().equals(loginInfo.getId()), ErrorCode.NO_AUTH_ERROR, "非应用创建用户，无法下载代码");
+
+        String codeGenType = app.getCodeGenType();
+        String codeDir = codeGenType + "_" + appId;
+        String codePath = AiConstant.CODE_OUTPUT_ROOT_DIR + File.separator + codeDir;
+        File codeProjectFile = new File(codePath);
+        ThrowUtils.throwIf(!codeProjectFile.exists() || !codeProjectFile.isDirectory(),
+                ErrorCode.OPERATION_ERROR, "应用未生成代码，请先生成代码");
+
+        String downloadFileName = String.valueOf(appId);
+        codeDownLoadService.download(codePath, downloadFileName, response);
+    }
 
     /**
      * 部署应用
