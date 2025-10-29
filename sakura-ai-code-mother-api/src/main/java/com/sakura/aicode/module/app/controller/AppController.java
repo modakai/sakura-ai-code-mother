@@ -12,6 +12,7 @@ import com.sakura.aicode.common.constant.UserConstant;
 import com.sakura.aicode.common.enums.CodeGenTypeEnum;
 import com.sakura.aicode.exception.BusinessException;
 import com.sakura.aicode.exception.ThrowUtils;
+import com.sakura.aicode.module.ai.service.AiCodeGenTypeRoutingService;
 import com.sakura.aicode.module.app.domain.convert.AppConvertMapper;
 import com.sakura.aicode.module.app.domain.dto.AppAddRequest;
 import com.sakura.aicode.module.app.domain.dto.AppDeployRequest;
@@ -49,6 +50,7 @@ public class AppController {
 
     private final AppService appService;
     private final AuthService authService;
+    private final AiCodeGenTypeRoutingService aiCodeGenTypeRoutingService;
     private final CodeDownLoadService codeDownLoadService;
 
     /**
@@ -149,7 +151,8 @@ public class AppController {
 
         // todo 调用AI，让Ai根据用户给的提示词生成对应的AppName和描述
         app.setAppName(initPrompt.substring(0, Math.min(initPrompt.length(), 12)));
-        app.setCodeGenType(CodeGenTypeEnum.VUE_PROJECT.getValue());
+        CodeGenTypeEnum codeGenTypeEnum = aiCodeGenTypeRoutingService.routeCodeGenType(initPrompt);
+        app.setCodeGenType(codeGenTypeEnum.getValue());
         app.setCover("https://www.mianshiya.com/logo.png");
 
         boolean result = appService.save(app);

@@ -4,6 +4,9 @@
     <div class="header-bar">
       <div class="header-left">
         <h1 class="app-name">{{ appInfo?.appName || '网站生成器' }}</h1>
+        <a-tag v-if="appInfo?.codeGenType" color="blue" class="type-tag">
+          {{ formatCodeGenType(appInfo.codeGenType) }}
+        </a-tag>
       </div>
       <div class="header-right">
         <a-button type="default" @click="showAppDetail">
@@ -154,7 +157,7 @@ import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { useLoginUserStore } from '@/stores/loginUser'
-import { CodeGenTypeEnum } from '@/utils/codeGenTypes'
+import { CodeGenTypeEnum, formatCodeGenType } from '@/utils/codeGenTypes'
 
 import MarkdownRenderer from '@/components/MarkdownRenderer.vue'
 import AppDetailModal from '@/components/AppDetailModal.vue'
@@ -646,6 +649,10 @@ onUnmounted(() => {
   font-size: 18px;
   font-weight: 600;
   color: #1a1a1a;
+}
+
+.type-tag {
+  font-size: 13px;
 }
 
 .header-right {

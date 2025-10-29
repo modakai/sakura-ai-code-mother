@@ -1,5 +1,6 @@
 package com.sakura.aicode.module.ai;
 
+import com.sakura.aicode.module.ai.service.AiCodeGenTypeRoutingService;
 import com.sakura.aicode.module.ai.service.AiCodeGeneratorService;
 import com.sakura.aicode.module.ai.tools.FileWriteTool;
 import dev.langchain4j.community.store.memory.chat.redis.RedisChatMemoryStore;
@@ -40,6 +41,13 @@ public class AiCodeGeneratorFactory {
                         .chatMemoryStore(redisChatMemoryStore)
                         .maxMessages(9999)
                         .build())
+                .build();
+    }
+
+    @Bean
+    public AiCodeGenTypeRoutingService aiCodeGenTypeRoutingService() {
+        return AiServices.builder(AiCodeGenTypeRoutingService.class)
+                .chatModel(chatModel)
                 .build();
     }
 }
