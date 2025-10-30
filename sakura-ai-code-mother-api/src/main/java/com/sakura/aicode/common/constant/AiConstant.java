@@ -1,5 +1,7 @@
 package com.sakura.aicode.common.constant;
 
+import java.util.Set;
+
 /**
  * @author Sakura
  */
@@ -18,4 +20,28 @@ public interface AiConstant {
 
     String VUE_PROJECT_PATH = "vue_project_";
 
+    /**
+     * 需要过滤的文件和目录名称
+     */
+     Set<String> IGNORED_NAMES = Set.of(
+            "node_modules",
+            ".git",
+            "dist",
+            "build",
+            ".DS_Store",
+            ".env",
+            "target",
+            ".mvn",
+            ".idea",
+            ".vscode"
+    );
+
+    /**
+     * 需要过滤的文件扩展名
+     */
+    Set<String> IGNORED_EXTENSIONS = Set.of(
+            ".log",
+            ".tmp",
+            ".cache"
+    );
 }

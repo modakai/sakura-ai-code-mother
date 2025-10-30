@@ -3,6 +3,7 @@ package com.sakura.aicode.module.other.service;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ZipUtil;
 import com.sakura.aicode.common.ErrorCode;
+import com.sakura.aicode.common.constant.AiConstant;
 import com.sakura.aicode.exception.BusinessException;
 import com.sakura.aicode.exception.ThrowUtils;
 import jakarta.servlet.http.HttpServletResponse;
@@ -13,7 +14,6 @@ import java.io.File;
 import java.io.FileFilter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.Set;
 
 /**
  * 下载代码服务
@@ -24,30 +24,7 @@ import java.util.Set;
 @Service
 public class CodeDownLoadService {
 
-    /**
-     * 需要过滤的文件和目录名称
-     */
-    private static final Set<String> IGNORED_NAMES = Set.of(
-            "node_modules",
-            ".git",
-            "dist",
-            "build",
-            ".DS_Store",
-            ".env",
-            "target",
-            ".mvn",
-            ".idea",
-            ".vscode"
-    );
 
-    /**
-     * 需要过滤的文件扩展名
-     */
-    private static final Set<String> IGNORED_EXTENSIONS = Set.of(
-            ".log",
-            ".tmp",
-            ".cache"
-    );
 
     public void download(String projectPath, String downloadFileName, HttpServletResponse response) {
         // 基础校验
@@ -89,11 +66,11 @@ public class CodeDownLoadService {
         for (Path part : relativePath) {
             String partName = part.toString();
             // 检查是否在忽略名称列表中
-            if (IGNORED_NAMES.contains(partName)) {
+            if (AiConstant.IGNORED_NAMES.contains(partName)) {
                 return false;
             }
             // 检查文件扩展名
-            if (IGNORED_EXTENSIONS.stream().anyMatch(partName::endsWith)) {
+            if (AiConstant.IGNORED_EXTENSIONS.stream().anyMatch(partName::endsWith)) {
                 return false;
             }
         }
