@@ -38,8 +38,10 @@ public class WebScreenshotUtil {
 
     @PreDestroy
     public static void destroy() {
-        log.info("---- 销毁WebDriver");
-        webDriver.quit();
+        if (webDriver != null) {
+            log.info("---- 销毁WebDriver");
+            webDriver.quit();
+        }
     }
 
     /**

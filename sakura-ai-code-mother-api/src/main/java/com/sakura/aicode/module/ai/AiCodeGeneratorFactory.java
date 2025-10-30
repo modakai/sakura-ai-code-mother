@@ -2,7 +2,7 @@ package com.sakura.aicode.module.ai;
 
 import com.sakura.aicode.module.ai.service.AiCodeGenTypeRoutingService;
 import com.sakura.aicode.module.ai.service.AiCodeGeneratorService;
-import com.sakura.aicode.module.ai.tools.*;
+import com.sakura.aicode.module.ai.tools.ToolFactory;
 import dev.langchain4j.community.store.memory.chat.redis.RedisChatMemoryStore;
 import dev.langchain4j.data.message.ToolExecutionResultMessage;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
@@ -26,6 +26,8 @@ public class AiCodeGeneratorFactory {
     private StreamingChatModel openAiStreamingChatModel;
     @Resource
     private RedisChatMemoryStore redisChatMemoryStore;
+    @Resource
+    private ToolFactory toolFactory;
 
     @Bean
     public AiCodeGeneratorService aiCodeGeneratorService() {
@@ -33,11 +35,7 @@ public class AiCodeGeneratorFactory {
                 .chatModel(chatModel)
                 .streamingChatModel(openAiStreamingChatModel)
                 .tools(
-                        new FileWriteTool(),
-                        new FileDeleteTool(),
-                        new FileReadTool(),
-                        new FileDirReadTool(),
-                        new FileModifyTool()
+                        toolFactory.getTools()
                 )
                 .hallucinatedToolNameStrategy(toolExecutionRequest -> ToolExecutionResultMessage.from(
                         toolExecutionRequest, "Error: there is not tool called" + toolExecutionRequest.name()

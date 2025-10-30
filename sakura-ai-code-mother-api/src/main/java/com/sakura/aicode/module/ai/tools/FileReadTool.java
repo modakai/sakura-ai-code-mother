@@ -5,11 +5,13 @@ import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.agent.tool.ToolMemoryId;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 
 /**
  * 文件读取工具
@@ -17,7 +19,8 @@ import java.nio.file.Paths;
  * @author Sakura
  */
 @Slf4j
-public class FileReadTool {
+@Component
+public class FileReadTool extends BaseTool  {
 
     @Tool("读取指定路径的文件内容")
     public String readFile(
@@ -28,7 +31,7 @@ public class FileReadTool {
         try {
             Path path = Paths.get(relativeFilePath);
             if (!path.isAbsolute()) {
-                String projectDirName = "vue_project_" + appId;
+                String projectDirName = AiConstant.VUE_PROJECT_PATH + appId;
                 Path projectRoot = Paths.get(AiConstant.CODE_OUTPUT_ROOT_DIR, projectDirName);
                 path = projectRoot.resolve(relativeFilePath);
             }
@@ -42,4 +45,22 @@ public class FileReadTool {
             return errorMessage;
         }
     }
+
+    @Override
+    public String getToolName() {
+        return "readFile";
+    }
+
+    @Override
+    public String getDisplayName() {
+        return "读取文件";
+    }
+
+    @Override
+    public String generateToolExecutedResult(Map<String, String> arguments) {
+        String relativeFilePath = arguments.get("relativeFilePath");
+        return String.format("[工具调用] %s %s", getDisplayName(), relativeFilePath);
+    }
 }
+
+

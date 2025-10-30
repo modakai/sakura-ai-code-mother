@@ -1,10 +1,11 @@
 package com.sakura.aicode.module.ai.core.handler;
 
-import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
 import com.sakura.aicode.common.constant.AiConstant;
 import com.sakura.aicode.module.ai.core.builder.VueProjectBuilder;
 import com.sakura.aicode.module.ai.core.model.message.*;
+import com.sakura.aicode.module.ai.tools.BaseTool;
+import com.sakura.aicode.module.ai.tools.ToolFactory;
 import com.sakura.aicode.module.auth.domain.vo.LoginUserVO;
 import com.sakura.aicode.module.history.service.ChatHistoryService;
 import com.sakura.aicode.utils.JsonUtils;
@@ -22,6 +23,7 @@ import java.util.Set;
  */
 @Slf4j
 public class JsonTextStreamHandler {
+
 
     /**
      * 处理 TokenStream（VUE_PROJECT）
@@ -77,7 +79,8 @@ public class JsonTextStreamHandler {
                 if (toolId != null && !seenToolIds.contains(toolId)) {
                     // 第一次调用这个工具，记录 ID 并完整返回工具信息
                     seenToolIds.add(toolId);
-                    return "\n\n[选择工具] 写入文件\n\n";
+                    BaseTool tool = ToolFactory.getTool(toolRequestMessage.getName());
+                    return tool.generateToolResult();
                 } else {
                     // 不是第一次调用这个工具，直接返回空
                     return "";
@@ -85,17 +88,11 @@ public class JsonTextStreamHandler {
             }
             case TOOL_EXECUTED -> {
                 ToolExecutedMessage toolExecutedMessage = JsonUtils.fromJson(chunk, ToolExecutedMessage.class);
+                String toolName = toolExecutedMessage.getName();
                 Map<String, String> argumentsMap = JsonUtils.fromJsonToMap(toolExecutedMessage.getArguments(), String.class, String.class);
 
-                String relativeFilePath = argumentsMap.get("relativeFilePath");
-                String suffix = FileUtil.getSuffix(relativeFilePath);
-                String content = argumentsMap.get("content");
-                String result = String.format("""
-                        [工具调用] 写入文件 %s
-                        ```%s
-                        %s
-                        ```
-                        """, relativeFilePath, suffix, content);
+                BaseTool tool = ToolFactory.getTool(toolName);
+                String result = tool.generateToolExecutedResult(argumentsMap);
                 // 输出前端和要持久化的内容
                 String output = String.format("\n\n%s\n\n", result);
                 chatHistoryStringBuilder.append(output);

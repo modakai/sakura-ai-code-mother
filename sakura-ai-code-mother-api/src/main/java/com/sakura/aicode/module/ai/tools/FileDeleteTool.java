@@ -5,18 +5,38 @@ import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.agent.tool.ToolMemoryId;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 
 /**
  * 删除文件工具
  *@author Sakura
  */
 @Slf4j
-public class FileDeleteTool {
+@Component
+public class FileDeleteTool extends BaseTool {
+
+    @Override
+    public String getToolName() {
+        return "delete";
+    }
+
+    @Override
+    public String getDisplayName() {
+        return "删除文件";
+    }
+
+    @Override
+    public String generateToolExecutedResult(Map<String, String> arguments) {
+        String relativePath = arguments.get("relativePath");
+        return String.format("[工具调用] %s %s", getDisplayName(), relativePath);
+    }
+
 
     @Tool("删除指定路径的文件")
     public String delete(@ToolMemoryId long appId, @P("要删除的文件的相对路径")String relativePath) {
@@ -63,4 +83,6 @@ public class FileDeleteTool {
         }
         return false;
     }
+
+
 }

@@ -41,7 +41,7 @@ export interface RequestConfigExtra {
 
 const instance: AxiosInstance = axios.create({
   baseURL: '/api',
-  timeout: 60000,
+  timeout: 6000000,
   headers: { 'Content-Type': ContentTypeEnum.JSON },
   withCredentials: true,
 })

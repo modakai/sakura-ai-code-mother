@@ -5,19 +5,22 @@ import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.agent.tool.ToolMemoryId;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Map;
 
 /**
  * 文件修改工具
  * @author Sakura
  */
 @Slf4j
-public class FileModifyTool {
+@Component
+public class FileModifyTool extends BaseTool {
 
     @Tool("修改文件内容， 用新内容替换指定的旧内容")
     public String modify(@ToolMemoryId long appId,
@@ -50,5 +53,36 @@ public class FileModifyTool {
         }
 
         return "文件修改完成 - " + relativePath;
+    }
+
+    @Override
+    public String getToolName() {
+        return "modifyFile";
+    }
+
+    @Override
+    public String getDisplayName() {
+        return "修改文件";
+    }
+
+    @Override
+    public String generateToolExecutedResult(Map<String, String> arguments) {
+        String relativeFilePath = arguments.get("relativeFilePath");
+        String oldContent = arguments.get("oldContent");
+        String newContent = arguments.get("newContent");
+        // 显示对比内容
+        return String.format("""
+                [工具调用] %s %s
+                
+                替换前：
+                ```
+                %s
+                ```
+                
+                替换后：
+                ```
+                %s
+                ```
+                """, getDisplayName(), relativeFilePath, oldContent, newContent);
     }
 }

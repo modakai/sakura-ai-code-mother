@@ -477,7 +477,7 @@ const sendMessage = async () => {
   await generateCode(message, aiMessageIndex)
 }
 
-// 生成代码 - 使用 EventSource 处理流式响应
+// 生成代码 - 使用 EventSource 处理流式响应 todo 修改代码后，需要重新刷新一下预览的视图，因为后端在异步构建（Vue项目），需要等待异步构建完成
 const generateCode = async (userMessage: string, aiMessageIndex: number) => {
   let eventSource: EventSource | null = null
   let streamCompleted = false

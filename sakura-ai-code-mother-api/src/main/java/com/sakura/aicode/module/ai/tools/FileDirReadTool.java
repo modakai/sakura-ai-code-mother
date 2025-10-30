@@ -1,27 +1,31 @@
 package com.sakura.aicode.module.ai.tools;
 
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.StrUtil;
 import com.sakura.aicode.common.constant.AiConstant;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.agent.tool.ToolMemoryId;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 文件目录读取工具
  * @author Sakura
  */
 @Slf4j
-public class FileDirReadTool {
+@Component
+public class FileDirReadTool extends BaseTool {
 
     @Tool("读取目录结构，获取指定目录下所有文件和子目录信息")
-    public String deleteFile(@ToolMemoryId long appId, @P("目录的相对路径，为空则读取整个项目结构")String relativePath) {
-        Path path = Paths.get(relativePath);
+    public String deleteFile(@ToolMemoryId long appId, @P("目录的相对路径，为空则读取整个项目结构")String relativeDirPath) {
+        Path path = Paths.get(relativeDirPath);
         if (!path.isAbsolute()) {
             String projectName= AiConstant.VUE_PROJECT_PATH + appId;
             // 获取到整个工程目录
@@ -29,7 +33,7 @@ public class FileDirReadTool {
         }
         File targetDir = path.toFile();
         if (!targetDir.exists() ||  !targetDir.isDirectory()) {
-            return "错误：目录不存在或不是目录 - " + relativePath;
+            return "错误：目录不存在或不是目录 - " + relativeDirPath;
         }
         StringBuilder structure = new StringBuilder();
         structure.append("项目目录结构：\r\n");
@@ -49,6 +53,25 @@ public class FileDirReadTool {
                     structure.append(indent).append(file.getName());
                 });
         return structure.toString();
+    }
+
+    @Override
+    public String getToolName() {
+        return "readDir";
+    }
+
+    @Override
+    public String getDisplayName() {
+        return "读取目录";
+    }
+
+    @Override
+    public String generateToolExecutedResult(Map<String, String> arguments) {
+        String relativeDirPath = arguments.get("relativeDirPath");
+        if (StrUtil.isEmpty(relativeDirPath)) {
+            relativeDirPath = "根目录";
+        }
+        return String.format("[工具调用] %s %s", getDisplayName(), relativeDirPath);
     }
 
     /**
@@ -74,3 +97,4 @@ public class FileDirReadTool {
     }
 
 }
+
