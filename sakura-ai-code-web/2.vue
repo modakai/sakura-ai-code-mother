@@ -49,7 +49,7 @@
             </a-button>
           </div>
           <div v-for="(message, index) in messages" :key="index" class="message-item">
-            <div v-if="message.type === 'U'" class="user-message">
+            <div v-if="message.type === 'user'" class="user-message">
               <div class="message-content">{{ message.content }}</div>
               <div class="message-avatar">
                 <a-avatar :src="loginUserStore.loginUser.userAvatar" />
@@ -214,13 +214,17 @@ import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { useLoginUserStore } from '@/stores/loginUser'
+import { deleteApp as deleteAppApi, deployApp as deployAppApi, getAppVoById } from '@/api/appController'
+import { listAppChatHistory } from '@/api/chatHistoryController'
 import { CodeGenTypeEnum, formatCodeGenType } from '@/utils/codeGenTypes'
+import request from '@/request'
 
 import MarkdownRenderer from '@/components/MarkdownRenderer.vue'
 import AppDetailModal from '@/components/AppDetailModal.vue'
 import DeploySuccessModal from '@/components/DeploySuccessModal.vue'
 import aiAvatar from '@/assets/aiAvatar.png'
 import { API_BASE_URL, getStaticPreviewUrl } from '@/config/env'
+import { type ElementInfo, VisualEditor } from '@/utils/visualEditor'
 
 import {
   CloudUploadOutlined,
@@ -228,12 +232,8 @@ import {
   EditOutlined,
   ExportOutlined,
   InfoCircleOutlined,
-  SendOutlined,
+  SendOutlined
 } from '@ant-design/icons-vue'
-import { deleteAppApi, deployAppApi, getAppVoApi } from '@/api/appApi.ts'
-import request from '@/utils/request.ts'
-import { cursorAppChatHistoryPage, loadAppChatHistoryApi } from '@/api/chatHistoryApi.ts'
-import { type ElementInfo, VisualEditor } from '@/utils/visualEditor'
 
 const route = useRoute()
 const router = useRouter()
@@ -245,7 +245,7 @@ const appId = ref<any>()
 
 // 对话相关
 interface Message {
-  type: 'U' | 'A'
+  type: 'user' | 'ai'
   content: string
   loading?: boolean
   createTime?: string
@@ -305,7 +305,7 @@ const loadChatHistory = async (isLoadMore = false) => {
   if (!appId.value || loadingHistory.value) return
   loadingHistory.value = true
   try {
-    const params: API.CursorChatHistoryRequest = {
+    const params: API.listAppChatHistoryParams = {
       appId: appId.value,
       pageSize: 10,
     }
@@ -313,15 +313,15 @@ const loadChatHistory = async (isLoadMore = false) => {
     if (isLoadMore && lastCreateTime.value) {
       params.lastCreateTime = lastCreateTime.value
     }
-    const res = await cursorAppChatHistoryPage(params)
-    if (res.code === 0 && res.data) {
-      const chatHistories = res.data.records || []
+    const res = await listAppChatHistory(params)
+    if (res.data.code === 0 && res.data.data) {
+      const chatHistories = res.data.data.records || []
       if (chatHistories.length > 0) {
         // 将对话历史转换为消息格式，并按时间正序排列（老消息在前）
         const historyMessages: Message[] = chatHistories
           .map((chat) => ({
-            type: (chat.messageType === 'U' ? 'U' : 'A') as 'U' | 'A',
-            content: chat.chatMessage || '',
+            type: (chat.messageType === 'user' ? 'user' : 'ai') as 'user' | 'ai',
+            content: chat.message || '',
             createTime: chat.createTime,
           }))
           .reverse() // 反转数组，让老消息在前
@@ -331,11 +331,7 @@ const loadChatHistory = async (isLoadMore = false) => {
         } else {
           // 初始加载，直接设置消息列表
           messages.value = historyMessages
-          // 初始加载完成后，滚动到底部
-          await nextTick()
-          scrollToBottom()
         }
-
         // 更新游标
         lastCreateTime.value = chatHistories[chatHistories.length - 1]?.createTime
         // 检查是否还有更多历史
@@ -370,11 +366,10 @@ const fetchAppInfo = async () => {
   appId.value = id
 
   try {
-    const res = await getAppVoApi(id as unknown as number)
-    if (res.code === 0 && res.data) {
-      appInfo.value = res.data
-      //将对话历史加载到Redis中
-      loadAppChatHistoryApi({ id })
+    const res = await getAppVoById({ id: id as unknown as number })
+    if (res.data.code === 0 && res.data.data) {
+      appInfo.value = res.data.data
+
       // 先加载对话历史
       await loadChatHistory()
       // 如果有至少2条对话记录，展示对应的网站
@@ -406,14 +401,14 @@ const fetchAppInfo = async () => {
 const sendInitialMessage = async (prompt: string) => {
   // 添加用户消息
   messages.value.push({
-    type: 'U',
+    type: 'user',
     content: prompt,
   })
 
   // 添加AI消息占位符
   const aiMessageIndex = messages.value.length
   messages.value.push({
-    type: 'A',
+    type: 'ai',
     content: '',
     loading: true,
   })
@@ -446,10 +441,9 @@ const sendMessage = async () => {
     message += elementContext
   }
   userInput.value = ''
-
-  // 添加用户消息
+  // 添加用户消息（包含元素信息）
   messages.value.push({
-    type: 'U',
+    type: 'user',
     content: message,
   })
 
@@ -464,7 +458,7 @@ const sendMessage = async () => {
   // 添加AI消息占位符
   const aiMessageIndex = messages.value.length
   messages.value.push({
-    type: 'A',
+    type: 'ai',
     content: '',
     loading: true,
   })
@@ -533,7 +527,7 @@ const generateCode = async (userMessage: string, aiMessageIndex: number) => {
 
       // 延迟更新预览，确保后端已完成处理
       setTimeout(async () => {
-        await loadChatHistory()
+        await fetchAppInfo()
         updatePreview()
       }, 1000)
     })
@@ -587,34 +581,6 @@ const scrollToBottom = () => {
   }
 }
 
-// 部署应用
-const deployApp = async () => {
-  if (!appId.value) {
-    message.error('应用ID不存在')
-    return
-  }
-
-  deploying.value = true
-  try {
-    const res = await deployAppApi({
-      appId: appId.value as unknown as number,
-    })
-
-    if (res.code === 0 && res.data) {
-      deployUrl.value = res.data
-      deployModalVisible.value = true
-      message.success('部署成功')
-    } else {
-      message.error('部署失败：' + res.message)
-    }
-  } catch (error) {
-    console.error('部署失败：', error)
-    message.error('部署失败，请重试')
-  } finally {
-    deploying.value = false
-  }
-}
-
 // 下载代码
 const downloadCode = async () => {
   if (!appId.value) {
@@ -626,7 +592,7 @@ const downloadCode = async () => {
     const API_BASE_URL = request.defaults.baseURL || ''
     const url = `${API_BASE_URL}/app/download/${appId.value}`
     const response = await fetch(url, {
-      method: 'POST',
+      method: 'GET',
       credentials: 'include',
     })
     if (!response.ok) {
@@ -653,6 +619,34 @@ const downloadCode = async () => {
   }
 }
 
+// 部署应用
+const deployApp = async () => {
+  if (!appId.value) {
+    message.error('应用ID不存在')
+    return
+  }
+
+  deploying.value = true
+  try {
+    const res = await deployAppApi({
+      appId: appId.value as unknown as number,
+    })
+
+    if (res.data.code === 0 && res.data.data) {
+      deployUrl.value = res.data.data
+      deployModalVisible.value = true
+      message.success('部署成功')
+    } else {
+      message.error('部署失败：' + res.data.message)
+    }
+  } catch (error) {
+    console.error('部署失败：', error)
+    message.error('部署失败，请重试')
+  } finally {
+    deploying.value = false
+  }
+}
+
 // 在新窗口打开预览
 const openInNewTab = () => {
   if (previewUrl.value) {
@@ -664,6 +658,42 @@ const openInNewTab = () => {
 const openDeployedSite = () => {
   if (deployUrl.value) {
     window.open(deployUrl.value, '_blank')
+  }
+}
+
+// iframe加载完成
+const onIframeLoad = () => {
+  previewReady.value = true
+  const iframe = document.querySelector('.preview-iframe') as HTMLIFrameElement
+  if (iframe) {
+    visualEditor.init(iframe)
+    visualEditor.onIframeLoad()
+  }
+}
+
+// 编辑应用
+const editApp = () => {
+  if (appInfo.value?.id) {
+    router.push(`/app/edit/${appInfo.value.id}`)
+  }
+}
+
+// 删除应用
+const deleteApp = async () => {
+  if (!appInfo.value?.id) return
+
+  try {
+    const res = await deleteAppApi({ id: appInfo.value.id })
+    if (res.data.code === 0) {
+      message.success('删除成功')
+      appDetailVisible.value = false
+      router.push('/')
+    } else {
+      message.error('删除失败：' + res.data.message)
+    }
+  } catch (error) {
+    console.error('删除失败：', error)
+    message.error('删除失败')
   }
 }
 
@@ -694,42 +724,6 @@ const getInputPlaceholder = () => {
     return `正在编辑 ${selectedElementInfo.value.tagName.toLowerCase()} 元素，描述您想要的修改...`
   }
   return '请描述你想生成的网站，越详细效果越好哦'
-}
-
-// iframe加载完成
-const onIframeLoad = () => {
-  previewReady.value = true
-  const iframe = document.querySelector('.preview-iframe') as HTMLIFrameElement
-  if (iframe) {
-    visualEditor.init(iframe)
-    visualEditor.onIframeLoad()
-  }
-}
-
-// 编辑应用
-const editApp = () => {
-  if (appInfo.value?.id) {
-    router.push(`/app/edit/${appInfo.value.id}`)
-  }
-}
-
-// 删除应用
-const deleteApp = async () => {
-  if (!appInfo.value?.id) return
-
-  try {
-    const res = await deleteAppApi({ id: appInfo.value.id })
-    if (res.code === 0) {
-      message.success('删除成功')
-      appDetailVisible.value = false
-      router.push('/')
-    } else {
-      message.error('删除失败：' + res.message)
-    }
-  } catch (error) {
-    console.error('删除失败：', error)
-    message.error('删除失败')
-  }
 }
 
 // 页面加载时获取应用信息
