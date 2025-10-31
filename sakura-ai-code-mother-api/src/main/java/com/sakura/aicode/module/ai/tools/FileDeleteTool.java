@@ -44,7 +44,8 @@ public class FileDeleteTool extends BaseTool {
         if (!path.isAbsolute()) {
             String projectName= AiConstant.VUE_PROJECT_PATH + appId;
             // 获取到整个工程目录
-            path = Paths.get(AiConstant.CODE_OUTPUT_ROOT_DIR, projectName);
+            Path pathRoot = Paths.get(AiConstant.CODE_OUTPUT_ROOT_DIR, projectName);
+            path =  pathRoot.resolve(relativePath);
         }
         if (!Files.exists(path)) {
             return "警告：文件不存在，无需删除 - " + relativePath;

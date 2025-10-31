@@ -24,12 +24,13 @@ import java.util.Map;
 public class FileDirReadTool extends BaseTool {
 
     @Tool("读取目录结构，获取指定目录下所有文件和子目录信息")
-    public String deleteFile(@ToolMemoryId long appId, @P("目录的相对路径，为空则读取整个项目结构")String relativeDirPath) {
+    public String readDir(@ToolMemoryId long appId, @P("目录的相对路径，为空则读取整个项目结构")String relativeDirPath) {
         Path path = Paths.get(relativeDirPath);
         if (!path.isAbsolute()) {
             String projectName= AiConstant.VUE_PROJECT_PATH + appId;
             // 获取到整个工程目录
-            path = Paths.get(AiConstant.CODE_OUTPUT_ROOT_DIR, projectName);
+            Path projectRoot = Paths.get(AiConstant.CODE_OUTPUT_ROOT_DIR, projectName);
+            path = projectRoot.resolve(relativeDirPath == null ? "" : relativeDirPath);
         }
         File targetDir = path.toFile();
         if (!targetDir.exists() ||  !targetDir.isDirectory()) {
@@ -97,4 +98,5 @@ public class FileDirReadTool extends BaseTool {
     }
 
 }
+
 

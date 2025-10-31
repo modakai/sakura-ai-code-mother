@@ -35,6 +35,7 @@ public class AiCodeGeneratorFactory {
                 .chatModel(chatModel)
                 .streamingChatModel(openAiStreamingChatModel)
                 .tools(
+                        // 如果工具调用一直返回正常信息，但是一直有问题，就会无限调用AI，该如何停止
                         toolFactory.getTools()
                 )
                 .hallucinatedToolNameStrategy(toolExecutionRequest -> ToolExecutionResultMessage.from(

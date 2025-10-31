@@ -22,37 +22,42 @@ import java.util.Map;
 @Component
 public class FileModifyTool extends BaseTool {
 
-    @Tool("修改文件内容， 用新内容替换指定的旧内容")
-    public String modify(@ToolMemoryId long appId,
-                         @P("文件的相对路径")String relativePath,
-                         @P("要替换的旧内容")String oldContent,
-                         @P("要修改的内容")String newContent) {
-        Path path = Paths.get(relativePath);
-        if (!path.isAbsolute()) {
-            String projectName= AiConstant.VUE_PROJECT_PATH + appId;
-            // 获取到整个工程目录
-            path = Paths.get(AiConstant.CODE_OUTPUT_ROOT_DIR, projectName);
-        }
-        if (!Files.exists(path) || !Files.isRegularFile(path)) {
-            return "错误：文件不存在或不是文件 - " + relativePath;
-        }
+    @Tool("修改文件内容，用新内容替换指定的旧内容")
+    public String modifyFile(
+            @P("文件的相对路径")
+            String relativeFilePath,
+            @P("要替换的旧内容")
+            String oldContent,
+            @P("替换后的新内容")
+            String newContent,
+            @ToolMemoryId Long appId
+    ) {
         try {
-            // 获取旧文件内容
+            Path path = Paths.get(relativeFilePath);
+            if (!path.isAbsolute()) {
+                String projectDirName = AiConstant.VUE_PROJECT_PATH + appId;
+                Path projectRoot = Paths.get(AiConstant.CODE_OUTPUT_ROOT_DIR, projectDirName);
+                path = projectRoot.resolve(relativeFilePath);
+            }
+            if (!Files.exists(path) || !Files.isRegularFile(path)) {
+                return "错误：文件不存在或不是文件 - " + relativeFilePath;
+            }
             String originalContent = Files.readString(path);
             if (!originalContent.contains(oldContent)) {
-                return "警告：文件中未找到要替换的内容，文件未修改 - " + relativePath;
+                return "警告：文件中未找到要替换的内容，文件未修改 - " + relativeFilePath;
             }
-            String modifyContent = originalContent.replace(oldContent, newContent);
-            if (originalContent.equals(modifyContent)) {
-                return "信息：替换后文件内容未发生改变 - " + relativePath;
+            String modifiedContent = originalContent.replace(oldContent, newContent);
+            if (originalContent.equals(modifiedContent)) {
+                return "信息：替换后文件内容未发生变化 - " + relativeFilePath;
             }
-            Files.writeString(path, modifyContent, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            Files.writeString(path, modifiedContent, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            log.info("成功修改文件: {}", path.toAbsolutePath());
+            return "文件修改成功: " + relativeFilePath;
         } catch (IOException e) {
-            log.error("文件修改失败：{}",e.getMessage(), e);
-            return "错误：文件修改失败：%s 错误：%s".formatted(relativePath, e.getMessage());
+            String errorMessage = "修改文件失败: " + relativeFilePath + ", 错误: " + e.getMessage();
+            log.error(errorMessage, e);
+            return errorMessage;
         }
-
-        return "文件修改完成 - " + relativePath;
     }
 
     @Override
