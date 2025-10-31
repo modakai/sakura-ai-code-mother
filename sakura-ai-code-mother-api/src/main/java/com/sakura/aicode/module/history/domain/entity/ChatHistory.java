@@ -1,8 +1,11 @@
 package com.sakura.aicode.module.history.domain.entity;
 
+import com.mybatisflex.annotation.Column;
 import com.mybatisflex.annotation.Id;
 import com.mybatisflex.annotation.KeyType;
 import com.mybatisflex.annotation.Table;
+import com.sakura.aicode.common.handler.ToolRequestMessageListTypeHandler;
+import com.sakura.aicode.module.ai.core.model.message.ToolRequestMessage;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,6 +14,7 @@ import lombok.NoArgsConstructor;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 对话历史 实体类。
@@ -47,6 +51,12 @@ public class ChatHistory implements Serializable {
      * 消息类型(U-用户，A-AI消息)
      */
     private String messageType;
+
+    /**
+     * 工具调用信息
+     */
+    @Column(value = "tool_request_message", typeHandler = ToolRequestMessageListTypeHandler.class)
+    private List<ToolRequestMessage> toolRequestMessage;
 
     /**
      * 用户id

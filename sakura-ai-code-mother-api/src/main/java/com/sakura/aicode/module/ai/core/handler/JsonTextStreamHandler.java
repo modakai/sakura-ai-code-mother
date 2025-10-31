@@ -13,9 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * JSON 消息流处理器
@@ -40,27 +38,28 @@ public class JsonTextStreamHandler {
                                long appId, LoginUserVO loginUser) {
         // 收集数据用于生成后端记忆格式
         StringBuilder chatHistoryStringBuilder = new StringBuilder();
+        List<ToolRequestMessage> toolRequestMessages = new LinkedList<>();
         // 用于跟踪已经见过的工具ID，判断是否是第一次调用
         Set<String> seenToolIds = new HashSet<>();
         return originFlux
                 .map(chunk -> {
                     // 解析每个 JSON 消息块
-                    return handleJsonMessageChunk(chunk, chatHistoryStringBuilder, seenToolIds);
+                    return handleJsonMessageChunk(chunk, chatHistoryStringBuilder, seenToolIds, toolRequestMessages);
                 })
                 .filter(StrUtil::isNotEmpty) // 过滤空字串
                 .doOnComplete(() -> {
-                    chatHistoryService.saveAiMessage(appId, chatHistoryStringBuilder.toString(), loginUser.getId());
+                    chatHistoryService.saveAiMessage(appId, chatHistoryStringBuilder.toString(), loginUser.getId(), toolRequestMessages);
                     // 构建项目
                     String projectPath = AiConstant.CODE_OUTPUT_ROOT_DIR + File.separator + AiConstant.VUE_PROJECT_PATH + appId;
                     VueProjectBuilder.buildAsync(projectPath);
                 })
-                .doOnError(e -> chatHistoryService.saveAiMessage(appId, "AI回复错误：" + e.getMessage(), loginUser.getId()));
+                .doOnError(e -> chatHistoryService.saveAiMessage(appId, "AI回复错误：" + e.getMessage(), loginUser.getId(), List.of()));
     }
 
     /**
      * 解析并收集 TokenStream 数据
      */
-    private String handleJsonMessageChunk(String chunk, StringBuilder chatHistoryStringBuilder, Set<String> seenToolIds) {
+    private String handleJsonMessageChunk(String chunk, StringBuilder chatHistoryStringBuilder, Set<String> seenToolIds, List<ToolRequestMessage> toolRequestMessages) {
         // 解析 JSON
         StreamMessage streamMessage = JsonUtils.fromJson(chunk, StreamMessage.class);
         StreamMessageTypeEnum typeEnum = StreamMessageTypeEnum.getEnumByValue(streamMessage.getType());
@@ -80,6 +79,7 @@ public class JsonTextStreamHandler {
                     // 第一次调用这个工具，记录 ID 并完整返回工具信息
                     seenToolIds.add(toolId);
                     BaseTool tool = ToolFactory.getTool(toolRequestMessage.getName());
+                    toolRequestMessages.add(toolRequestMessage);
                     return tool.generateToolResult();
                 } else {
                     // 不是第一次调用这个工具，直接返回空

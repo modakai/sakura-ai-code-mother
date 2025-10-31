@@ -9,6 +9,7 @@ import com.sakura.aicode.common.ErrorCode;
 import com.sakura.aicode.common.constant.CommonConstant;
 import com.sakura.aicode.exception.BusinessException;
 import com.sakura.aicode.exception.ThrowUtils;
+import com.sakura.aicode.module.ai.core.model.message.ToolRequestMessage;
 import com.sakura.aicode.module.app.domain.entity.App;
 import com.sakura.aicode.module.history.common.enums.MessageTypeEnum;
 import com.sakura.aicode.module.history.domain.convert.ChatHistoryConvertMapper;
@@ -20,6 +21,7 @@ import com.sakura.aicode.module.history.service.ChatHistoryService;
 import com.sakura.aicode.module.user.domain.entity.User;
 import com.sakura.aicode.module.user.domain.vo.UserVO;
 import com.sakura.aicode.module.user.service.UserService;
+import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.community.store.memory.chat.redis.RedisChatMemoryStore;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
@@ -54,7 +56,7 @@ public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatH
     @Override
     public void loadChatMemoryMessage(long appId, long userId, int maxCount) {
         QueryWrapper queryWrapper = QueryWrapper.create()
-                .select(CHAT_HISTORY.CHAT_MESSAGE, CHAT_HISTORY.MESSAGE_TYPE)
+                .select(CHAT_HISTORY.CHAT_MESSAGE, CHAT_HISTORY.MESSAGE_TYPE, CHAT_HISTORY.TOOL_REQUEST_MESSAGE)
                 .from(ChatHistory.class)
                 .eq(ChatHistory::getAppId, appId)
                 .eq(ChatHistory::getUserId, userId)
@@ -76,7 +78,17 @@ public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatH
                 // 用户消息
                 chatMessages.add(UserMessage.from(chatHistory.getChatMessage()));
             } else if (MessageTypeEnum.AI.getValue().equals(messageType)){
-                chatMessages.add(AiMessage.from(chatHistory.getChatMessage()));
+                List<ToolRequestMessage> toolRequestMessage = chatHistory.getToolRequestMessage();
+                // 转换
+                List<ToolExecutionRequest> toolExecutionRequests = toolRequestMessage.stream()
+                        .map(message -> ToolExecutionRequest.builder()
+                                .id(message.getId())
+                                .name(message.getName())
+                                .arguments(message.getArguments())
+                                .build())
+                        .toList();
+                AiMessage message = AiMessage.from(chatHistory.getChatMessage(), toolExecutionRequests);
+                chatMessages.add(message);
             }
         }
         redisChatMemoryStore.updateMessages(appId, chatMessages);
@@ -155,12 +167,13 @@ public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatH
     }
 
     @Override
-    public void saveAiMessage(Long appId, String message, Long userId) {
+    public void saveAiMessage(Long appId, String message, Long userId, List<ToolRequestMessage> toolRequestMessages) {
         ChatHistory chatHistory = new ChatHistory();
         chatHistory.setAppId(appId);
         chatHistory.setChatMessage(message);
         chatHistory.setUserId(userId);
         chatHistory.setMessageType(MessageTypeEnum.AI.getValue());
+        chatHistory.setToolRequestMessage(toolRequestMessages);
         saveMessage(chatHistory);
     }
 
