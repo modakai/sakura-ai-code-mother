@@ -146,7 +146,9 @@ public class ChatHistoryOriginalServiceImpl extends ServiceImpl<ChatHistoryOrigi
             log.debug("总记录数 ({}) 小于等于 maxCount+1 ({}), 不需要检查边缘记录", totalCount, maxCount + 1);
 
             // 直接查询所有可用记录（跳过最新的用户消息）
-            QueryWrapper queryWrapper = QueryWrapper.create().eq(ChatHistoryOriginal::getAppId, appId).orderBy(ChatHistoryOriginal::getId, false) // 使用ID倒序，确保顺序性
+            QueryWrapper queryWrapper = QueryWrapper.create()
+                    .eq(ChatHistoryOriginal::getAppId, appId)
+                    .orderBy(ChatHistoryOriginal::getId, false) // 使用ID倒序，确保顺序性
                     .limit(1, availableCount);  // 查询从第2条开始的所有可用记录
 
             return this.list(queryWrapper);
@@ -154,7 +156,10 @@ public class ChatHistoryOriginalServiceImpl extends ServiceImpl<ChatHistoryOrigi
 
         // 5. 如果总记录数大于 maxCount+1，则需要检查边缘记录
         // 查询第 maxCount+1 条记录（边缘记录）
-        QueryWrapper edgeQueryWrapper = QueryWrapper.create().eq(ChatHistoryOriginal::getAppId, appId).orderBy(ChatHistoryOriginal::getId, false).limit(maxCount, 1);  // 查询第 maxCount+1 条记录
+        QueryWrapper edgeQueryWrapper = QueryWrapper.create()
+                .eq(ChatHistoryOriginal::getAppId, appId)
+                .orderBy(ChatHistoryOriginal::getId, false)
+                .limit(maxCount, 1);  // 查询第 maxCount+1 条记录
 
         ChatHistoryOriginal edgeRecord = this.getOne(edgeQueryWrapper);
 
@@ -170,7 +175,10 @@ public class ChatHistoryOriginalServiceImpl extends ServiceImpl<ChatHistoryOrigi
         long actualLimit = Math.min(needExtraRequest ? maxCount + 1 : maxCount, availableCount);
 
         // 8. 查询历史记录
-        QueryWrapper queryWrapper = QueryWrapper.create().eq(ChatHistoryOriginal::getAppId, appId).orderBy(ChatHistoryOriginal::getId, false).limit(1, actualLimit);  // 查询从第2条开始的 actualLimit 条记录
+        QueryWrapper queryWrapper = QueryWrapper.create()
+                .eq(ChatHistoryOriginal::getAppId, appId)
+                .orderBy(ChatHistoryOriginal::getId, false)
+                .limit(1, actualLimit);  // 查询从第2条开始的 actualLimit 条记录
 
         List<ChatHistoryOriginal> originalHistoryList = this.list(queryWrapper);
         if (CollUtil.isEmpty(originalHistoryList)) {
@@ -191,7 +199,10 @@ public class ChatHistoryOriginalServiceImpl extends ServiceImpl<ChatHistoryOrigi
 
             // 重新查询，使用调整后的 maxCount
             actualLimit = Math.min(maxCount, availableCount);
-            queryWrapper = QueryWrapper.create().eq(ChatHistoryOriginal::getAppId, appId).orderBy(ChatHistoryOriginal::getId, false).limit(1, actualLimit);  // 查询从第2条开始的 actualLimit 条记录
+            queryWrapper = QueryWrapper.create()
+                    .eq(ChatHistoryOriginal::getAppId, appId)
+                    .orderBy(ChatHistoryOriginal::getId, false)
+                    .limit(1, actualLimit);  // 查询从第2条开始的 actualLimit 条记录
 
             originalHistoryList = this.list(queryWrapper);
             if (CollUtil.isEmpty(originalHistoryList)) {

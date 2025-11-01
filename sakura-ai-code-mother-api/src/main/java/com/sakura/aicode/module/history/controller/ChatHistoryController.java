@@ -56,7 +56,7 @@ public class ChatHistoryController {
         CompletableFuture.runAsync(() -> {
             try {
                 // 执行加载逻辑（即使失败也不影响主流程）
-                chatHistoryOriginalService.loadOriginalChatHistoryToMemory(appId, 50);
+                chatHistoryOriginalService.loadOriginalChatHistoryToMemory(appId, 5);
                 log.info("异步加载成功：用户[{}]，应用[{}]", loginInfo.getId(), appId);
             } catch (Exception e) {
                 // 捕获异步任务中的异常（避免静默失败，方便排查）

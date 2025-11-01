@@ -8,9 +8,12 @@ function setToken(token: string) {
 function getToken() {
   return localStorage.getItem(TOKEN_NAME)
 }
-
+function removeToken() {
+  localStorage.removeItem(TOKEN_NAME)
+}
 export {
   TOKEN_NAME,
   setToken,
   getToken,
+  removeToken
 }

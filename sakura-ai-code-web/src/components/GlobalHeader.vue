@@ -54,6 +54,7 @@ import { logoutApi } from '@/api/authApi'
 
 import { LogoutOutlined } from '@ant-design/icons-vue'
 import { useLoginUserStore } from '@/stores/loginUser.ts'
+import { removeToken } from '@/utils/tokenUtil.ts'
 
 const router = useRouter()
 const route = useRoute()
@@ -145,6 +146,7 @@ const doLogout = async () => {
       userRole: '',
       userName: '未登录',
     })
+    removeToken()
     message.success('退出登录成功')
     await router.push('/login')
   } else {
