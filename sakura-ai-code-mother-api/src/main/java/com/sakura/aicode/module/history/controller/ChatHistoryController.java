@@ -14,6 +14,7 @@ import com.sakura.aicode.module.auth.service.AuthService;
 import com.sakura.aicode.module.history.domain.dto.ChatHistoryQueryRequest;
 import com.sakura.aicode.module.history.domain.entity.ChatHistory;
 import com.sakura.aicode.module.history.domain.vo.ChatHistoryVO;
+import com.sakura.aicode.module.history.service.ChatHistoryOriginalService;
 import com.sakura.aicode.module.history.service.ChatHistoryService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ import java.util.concurrent.CompletableFuture;
 public class ChatHistoryController {
 
     private final ChatHistoryService chatHistoryService;
+    private final ChatHistoryOriginalService chatHistoryOriginalService;
     private final AuthService authService;
     private final AppService appService;
 
@@ -54,7 +56,7 @@ public class ChatHistoryController {
         CompletableFuture.runAsync(() -> {
             try {
                 // 执行加载逻辑（即使失败也不影响主流程）
-                chatHistoryService.loadChatMemoryMessage(appId, loginInfo.getId(), 20);
+                chatHistoryOriginalService.loadOriginalChatHistoryToMemory(appId, 50);
                 log.info("异步加载成功：用户[{}]，应用[{}]", loginInfo.getId(), appId);
             } catch (Exception e) {
                 // 捕获异步任务中的异常（避免静默失败，方便排查）

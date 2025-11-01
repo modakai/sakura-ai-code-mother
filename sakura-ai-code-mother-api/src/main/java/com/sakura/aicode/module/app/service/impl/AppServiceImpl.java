@@ -23,7 +23,9 @@ import com.sakura.aicode.module.app.domain.vo.AppVO;
 import com.sakura.aicode.module.app.mapper.AppMapper;
 import com.sakura.aicode.module.app.service.AppService;
 import com.sakura.aicode.module.auth.domain.vo.LoginUserVO;
+import com.sakura.aicode.module.history.common.enums.MessageTypeEnum;
 import com.sakura.aicode.module.history.domain.entity.ChatHistory;
+import com.sakura.aicode.module.history.service.ChatHistoryOriginalService;
 import com.sakura.aicode.module.history.service.ChatHistoryService;
 import com.sakura.aicode.module.other.service.ScreenshotService;
 import com.sakura.aicode.module.user.domain.entity.User;
@@ -59,6 +61,7 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
     private final UserService userService;
     private final AiCodeGeneratorFacade aiCodeGeneratorFacade;
     private final ChatHistoryService chatHistoryService;
+    private final ChatHistoryOriginalService chatHistoryOriginalService;
     private final ScreenshotService screenshotService;
 
     @Setter
@@ -131,10 +134,11 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
 
         // 2 保存用户消息
         chatHistoryService.saveUserMessage(appId, message, loginUserVO.getId());
+        chatHistoryOriginalService.addOriginalChatMessage(appId, message, MessageTypeEnum.USER.getValue(), loginUserVO.getId());
 
         // 4. 保存AI回复
         Flux<String> flux = aiCodeGeneratorFacade.generatorCodeAndSaveWithStream(message, codeGenTypeEnum, appId);
-        return StreamHandlerExecutor.execStream(flux, codeGenTypeEnum, chatHistoryService, appId, loginUserVO);
+        return StreamHandlerExecutor.execStream(flux, codeGenTypeEnum, chatHistoryService, chatHistoryOriginalService, appId, loginUserVO);
     }
 
     @Override

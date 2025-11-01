@@ -5,8 +5,6 @@ import com.sakura.aicode.module.history.service.ChatHistoryService;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 
-import java.util.List;
-
 /**
  * 简单文本流处理器
  * 处理 HTML 和 MULTI_FILE 类型的流式响应
@@ -33,7 +31,7 @@ public class SimpleTextStreamHandler {
                     builder.append(chunk);
                     return chunk;
                 })
-                .doOnComplete(() -> chatHistoryService.saveAiMessage(appId, builder.toString(), loginUser.getId(), List.of()))
-                .doOnError(e -> chatHistoryService.saveAiMessage(appId, "AI回复错误：" + e.getMessage(), loginUser.getId(), List.of()));
+                .doOnComplete(() -> chatHistoryService.saveAiMessage(appId, builder.toString(), loginUser.getId()))
+                .doOnError(e -> chatHistoryService.saveAiMessage(appId, "AI回复错误：" + e.getMessage(), loginUser.getId()));
     }
 }

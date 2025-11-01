@@ -3,7 +3,6 @@ package com.sakura.aicode.module.history.service;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.service.IService;
-import com.sakura.aicode.module.ai.core.model.message.ToolRequestMessage;
 import com.sakura.aicode.module.app.domain.entity.App;
 import com.sakura.aicode.module.history.domain.dto.ChatHistoryQueryRequest;
 import com.sakura.aicode.module.history.domain.entity.ChatHistory;
@@ -46,7 +45,7 @@ public interface ChatHistoryService extends IService<ChatHistory> {
 
     void saveUserMessage(Long appId, String message, Long userId);
 
-    void saveAiMessage(Long appId, String message, Long userId, List<ToolRequestMessage> toolRequestMessages);
+    void saveAiMessage(Long appId, String message, Long userId);
 
     void removeByAppId(Long appId);
 }

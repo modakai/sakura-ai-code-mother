@@ -9,7 +9,6 @@ import com.sakura.aicode.common.ErrorCode;
 import com.sakura.aicode.common.constant.CommonConstant;
 import com.sakura.aicode.exception.BusinessException;
 import com.sakura.aicode.exception.ThrowUtils;
-import com.sakura.aicode.module.ai.core.model.message.ToolRequestMessage;
 import com.sakura.aicode.module.app.domain.entity.App;
 import com.sakura.aicode.module.history.common.enums.MessageTypeEnum;
 import com.sakura.aicode.module.history.domain.convert.ChatHistoryConvertMapper;
@@ -21,7 +20,6 @@ import com.sakura.aicode.module.history.service.ChatHistoryService;
 import com.sakura.aicode.module.user.domain.entity.User;
 import com.sakura.aicode.module.user.domain.vo.UserVO;
 import com.sakura.aicode.module.user.service.UserService;
-import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.community.store.memory.chat.redis.RedisChatMemoryStore;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
@@ -78,16 +76,7 @@ public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatH
                 // 用户消息
                 chatMessages.add(UserMessage.from(chatHistory.getChatMessage()));
             } else if (MessageTypeEnum.AI.getValue().equals(messageType)){
-                List<ToolRequestMessage> toolRequestMessage = chatHistory.getToolRequestMessage();
-                // 转换
-                List<ToolExecutionRequest> toolExecutionRequests = toolRequestMessage.stream()
-                        .map(message -> ToolExecutionRequest.builder()
-                                .id(message.getId())
-                                .name(message.getName())
-                                .arguments(message.getArguments())
-                                .build())
-                        .toList();
-                AiMessage message = AiMessage.from(chatHistory.getChatMessage(), toolExecutionRequests);
+                AiMessage message = AiMessage.from(chatHistory.getChatMessage());
                 chatMessages.add(message);
             }
         }
@@ -167,13 +156,12 @@ public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatH
     }
 
     @Override
-    public void saveAiMessage(Long appId, String message, Long userId, List<ToolRequestMessage> toolRequestMessages) {
+    public void saveAiMessage(Long appId, String message, Long userId) {
         ChatHistory chatHistory = new ChatHistory();
         chatHistory.setAppId(appId);
         chatHistory.setChatMessage(message);
         chatHistory.setUserId(userId);
         chatHistory.setMessageType(MessageTypeEnum.AI.getValue());
-        chatHistory.setToolRequestMessage(toolRequestMessages);
         saveMessage(chatHistory);
     }
 
